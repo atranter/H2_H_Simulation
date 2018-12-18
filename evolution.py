@@ -124,8 +124,7 @@ def evolveAll():
 		file.write("{} {} {} {} {} {} {} {} {} {}".format(average_forces[0], average_forces[1],
 									   average_forces[2], average_forces[3],
 									   average_forces[4], average_forces[5],
-									   average_forces[6], velocity_x, 
-									   velocity_y,        geometry)) 
+									   velocity_x, velocity_y, geometry)) 
 	file.close()
 
 
