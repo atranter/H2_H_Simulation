@@ -3,7 +3,7 @@ import sys
 
 INITIAL_VELOCITY_X = 0 #angstroms/s
 INITIAL_VELOCITY_Y = 0 #angstroms/s
-dt = 1000000000*10**-15 #s from fs
+dt = 1000000*10**-15 #s from fs
 dx = 0.001 #angstrom
 dy = 0.001 #angstrom
 M = 1000000*938.2720813 #eV/c^2
@@ -102,7 +102,7 @@ def evolveAll():
 	file = open("evolutionall.txt", "w")
 
 	average_forces = findForces(geometry)
-	file.write("{} {} {} {} {} {} {} {} {}".format(average_forces[0], average_forces[1],
+	file.write("{} {} {} {} {} {} {} {} {}\n".format(average_forces[0], average_forces[1],
 									   average_forces[2], average_forces[3],
 									   average_forces[4], average_forces[5],
 									   velocity_x, velocity_y, geometry)) 
@@ -121,7 +121,7 @@ def evolveAll():
 			geometry = newGeometry(geometry, velocity_x*dt, velocity_y*dt, i)
 
 		average_forces = findForces(geometry)
-		file.write("{} {} {} {} {} {} {} {} {}".format(average_forces[0], average_forces[1],
+		file.write("{} {} {} {} {} {} {} {} {}\n".format(average_forces[0], average_forces[1],
 									   average_forces[2], average_forces[3],
 									   average_forces[4], average_forces[5],
 									   velocity_x, velocity_y, geometry)) 
