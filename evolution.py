@@ -121,7 +121,7 @@ def evolveAll():
 			geometry = newGeometry(geometry, velocity_x*dt, velocity_y*dt, i)
 
 		average_forces = findForces(geometry)
-		file.write("{} {} {} {} {} {} {} {} {} {}".format(average_forces[0], average_forces[1],
+		file.write("{} {} {} {} {} {} {} {} {}".format(average_forces[0], average_forces[1],
 									   average_forces[2], average_forces[3],
 									   average_forces[4], average_forces[5],
 									   velocity_x, velocity_y, geometry)) 
