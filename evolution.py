@@ -1,9 +1,10 @@
 from OpenFermionWrapper import OpenFermionWrapper
 import sys
 
-INITIAL_VELOCITY_X = 0 #angstroms/s
+
 INITIAL_VELOCITY_Y = 0 #angstroms/s
-dt = 50000000*10**-15 #s from fs
+dt = 10000000*10**-15 #s from fs
+INITIAL_VELOCITY_X = -.1/dt #angstroms/s
 dx = 0.001 #angstrom
 dy = 0.001 #angstrom
 M = 1000000*938.2720813 #eV/c^2
