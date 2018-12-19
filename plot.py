@@ -74,6 +74,6 @@ def plot():
 	plt.show()
 
 
-get_data("better.txt")
+get_data("test.txt")
 plot()
 # show_data()
