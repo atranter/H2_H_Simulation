@@ -107,6 +107,13 @@ def evolveAll():
 									   average_forces[4], average_forces[5],
 									   velocity_x, velocity_y, geometry)) 
 	file.close()
+	data = open("evolutionalldata.txt", "w")
+	data.write("{} {} {} {} {} {} {} {} {}\n".format(geometry[0][1][0], geometry[0][1][1],
+													 geometry[0][1][2], geometry[1][1][0],
+													 geometry[1][1][1], geometry[1][1][2],
+													 geometry[2][1][0], geometry[2][1][1],
+													 geometry[2][1][2]))
+	data.close()
 
 	for x in range(0,ITERATIONS):
 		for i in range(0, 3):
@@ -128,6 +135,14 @@ def evolveAll():
 									   average_forces[4], average_forces[5],
 									   velocity_x, velocity_y, geometry)) 
 		file.close()
+		data = open("evolutionalldata.txt", "a")
+		data.write("{} {} {} {} {} {} {} {} {}\n".format(geometry[0][1][0], geometry[0][1][1],
+														 geometry[0][1][2], geometry[1][1][0],
+														 geometry[1][1][1], geometry[1][1][2],
+														 geometry[2][1][0], geometry[2][1][1],
+														 geometry[2][1][2]))
+		data.close()
+
 
 
 def evolve():
@@ -164,8 +179,8 @@ def evolve():
 	file.close()
 
 def main(input):
-	evolve()
-	# evolveAll()
+	# evolve()
+	evolveAll()
 	# for position in positions:
 	# 	print position
 	# e = getGroundState([("H", (0,0,0))])
