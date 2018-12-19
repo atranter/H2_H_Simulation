@@ -3,7 +3,7 @@ import sys
 
 INITIAL_VELOCITY_X = 0 #angstroms/s
 INITIAL_VELOCITY_Y = 0 #angstroms/s
-dt = 100000000*10**-15 #s from fs
+dt = 50000000*10**-15 #s from fs
 dx = 0.001 #angstrom
 dy = 0.001 #angstrom
 M = 1000000*938.2720813 #eV/c^2
@@ -13,7 +13,7 @@ BASIS = "sto-3g"
 MULTIPLICITY = 2
 CHARGE = 0
 
-MIN_FORCE = 1000000000
+ITERATIONS = 100
 
 positions = list()
 
@@ -108,7 +108,7 @@ def evolveAll():
 									   velocity_x, velocity_y, geometry)) 
 	file.close()
 
-	for x in range(0,25):
+	for x in range(0,ITERATIONS):
 		for i in range(0, 3):
 			velocity_x = velocities[(i*2)]
 			velocity_y = velocities[(i*2)+1]
@@ -146,7 +146,7 @@ def evolve():
 	file.write("{} {} {} {} {}\n".format(fx, fy, velocity_x, velocity_y, geometry)) 
 	print("\n\n ----- ENDING STATS ----- \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
 	# while(abs(fx) > MIN_FORCE or abs(fy) > MIN_FORCE):
-	for a in range(0, 20):
+	for a in range(0, ITERATIONS):
 		velocity_x += (fx/M)*dt*10**10 # converting to angstroms/s
 		velocity_y += (fy/M)*dt*10**10
 
