@@ -3,46 +3,41 @@ import numpy as np
 import mpl_toolkits.mplot3d.axes3d as p3
 from matplotlib import animation
 
-z1 = list()
-y1 = list()
-x1 = list()
-z2 = list()
-y2 = list()
-x2 = list()
-z3 = list()
-y3 = list()
-x3 = list()
+N_ATOMS = 0
+N_ITERATIONS = 0
+
+# Each object in the list is an atom. Each atom object has 3 lists -> 
+	# z, y, x coords
+ATOM_COORDS = list()
+
 
 def get_data(filename):
-	file = open(filename, "r")
-	for line in file:
-		coordinates = line.split(" ")
-		for i in range(0,9):
-			if(i/3 == 0):
-				if(i%3 == 0):
-					z1.append(coordinates[i])
-				elif(i%3 == 1):
-					y1.append(coordinates[i])
-				elif(i%3 == 2):
-					x1.append(coordinates[i])
-			elif(i/3 == 1):
-				if(i%3 == 0):
-					z2.append(coordinates[i])
-				elif(i%3 == 1):
-					y2.append(coordinates[i])
-				elif(i%3 == 2):
-					x2.append(coordinates[i])
-			elif(i/3 == 2):
-				if(i%3 == 0):
-					z3.append(coordinates[i])
-				elif(i%3 == 1):
-					y3.append(coordinates[i])
-				elif(i%3 == 2):
-					x3.append(coordinates[i])
+	global N_ITERATIONS, N_ATOMS
 
-def show_data():
-	for i in y2:
-		print i
+	file = open(filename, "r")
+
+	for line in file:
+
+		N_ITERATIONS += 1
+
+		coordinates = line.split(" ")
+		N_ATOMS = len(coordinates)/3
+
+		for i in range(N_ATOMS):
+			ATOM_COORDS.append([list(), list(), list()])
+
+		for i, coord in enumerate(coordinates):
+			atom_i = i/3 # 3 coordinates per atom
+			if(coord == ""):
+				continue 
+			if(i%3 == 0):
+				ATOM_COORDS[atom_i][0].append(float(coord)) # -> atom's list
+			elif(i%3 == 1):
+				ATOM_COORDS[atom_i][1].append(float(coord))
+			else:
+				ATOM_COORDS[atom_i][2].append(float(coord))
+	file.close()
+
 
 # second option - move the point position at every frame
 def update_point(n, x, y, z, point):
@@ -52,48 +47,32 @@ def update_point(n, x, y, z, point):
 
 
 def plot():
-	global x1, y1, z1, x2, y2, z2, x3, y3, z3
+	global x1, y1, z1, x2, y2, z2
 	fig = plt.figure()
 	ax = p3.Axes3D(fig)
 
-	x1 = map(float,x1)
-	y1 = map(float,y1)
-	z1 = map(float,z1)
-
-	x2 = map(float,x2)
-	y2 = map(float,y2)
-	z2 = map(float,z2)
-
-	x3 = map(float,x3)
-	y3 = map(float,y3)
-	z3 = map(float,z3)
-
-	x1 = np.asarray(x1)
-	y1 = np.asarray(y1)
-	z1 = np.asarray(z1)
-	x2 = np.asarray(x2)
-	y2 = np.asarray(y2)
-	z2 = np.asarray(z2)
-	x3 = np.asarray(x3)
-	y3 = np.asarray(y3)
-	z3 = np.asarray(z3)
+	for atom in ATOM_COORDS:
+		atom[0] = np.asarray(atom[0])
+		atom[1] = np.asarray(atom[1])
+		atom[2] = np.asarray(atom[2])
 
 	# create the first plot
-	point1, = ax.plot([x1[0]], [y1[0]], [z1[0]], 'o')
-	point2, = ax.plot([x2[0]], [y2[0]], [z2[0]], 'o')
-	point3, = ax.plot([x3[0]], [y3[0]], [z3[0]], 'o')
-
+	points = list()
+	for atom in range(N_ATOMS):
+		point, = ax.plot([ATOM_COORDS[atom][2][0]], [ATOM_COORDS[atom][1][0]], [ATOM_COORDS[atom][0][0]], 'o')
+		points.append(point)
 
 	ax.legend()
 	ax.set_xlim([-2, 2])
 	ax.set_ylim([-2, 2])
 	ax.set_zlim([-2, 2])
 
-	ani1=animation.FuncAnimation(fig, update_point, 61, fargs=(x1, y1, z1, point1))
-	ani2=animation.FuncAnimation(fig, update_point, 61, fargs=(x2, y2, z2, point2))
-	ani3=animation.FuncAnimation(fig, update_point, 61, fargs=(x3, y3, z3, point3))
+	animations = list()
+	for atom in range(N_ATOMS):
+		animations.append(animation.FuncAnimation(fig, update_point, N_ITERATIONS, fargs=(ATOM_COORDS[atom][2], ATOM_COORDS[atom][1], ATOM_COORDS[atom][0], points[atom])))
 
 	plt.show()
+
 
 get_data("better.txt")
 plot()
