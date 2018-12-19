@@ -1,3 +1,11 @@
+'''
+	TODO: 
+	make initial velocities a list/array
+	modify so that the number of atoms is more modular (length of geometry)
+	make molecular input modular
+	update velocities more cleanly
+'''
+
 from OpenFermionWrapper import OpenFermionWrapper
 import sys
 
