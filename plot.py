@@ -49,7 +49,7 @@ def update_point(n, x, y, z, point):
 
 
 def plot():
-	global x1, y1, z1, x2, y2, z2
+	global N_ATOMS, N_ITERATIONS, ATOM_COORDS
 	fig = plt.figure()
 	ax = p3.Axes3D(fig)
 
@@ -66,16 +66,16 @@ def plot():
 		points.append(point)
 
 	ax.legend()
-	ax.set_xlim([-1, 1])
-	ax.set_ylim([-1, 1])
-	ax.set_zlim([-1, 1])
+	ax.set_xlim([-2, 2])
+	ax.set_ylim([-2, 2])
+	ax.set_zlim([-2, 2])
 
 	animations = list()
 	for atom in range(N_ATOMS):
 		animations.append(animation.FuncAnimation(fig, update_point, 
-			              N_ITERATIONS, interval=20, fargs=(ATOM_COORDS[atom][2], 
-			              ATOM_COORDS[atom][1], ATOM_COORDS[atom][0], 
-			              points[atom])))
+			              N_ITERATIONS, interval=2, repeat_delay=1000, 
+			              fargs=(ATOM_COORDS[atom][2], ATOM_COORDS[atom][1], 
+			              	     ATOM_COORDS[atom][0], points[atom])))
 
 	plt.show()
 
@@ -85,6 +85,7 @@ def main(input):
 	get_data(input[1])
 	plot()
 	# show_data()
+
 
 if __name__ == '__main__':
 	main(sys.argv)
