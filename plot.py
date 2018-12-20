@@ -1,7 +1,9 @@
 from matplotlib import pyplot as plt
+# matplotlib.use('agg')
 import numpy as np
 import mpl_toolkits.mplot3d.axes3d as p3
 from matplotlib import animation
+import sys
 
 N_ATOMS = 0
 N_ITERATIONS = 0
@@ -59,21 +61,30 @@ def plot():
 	# create the first plot
 	points = list()
 	for atom in range(N_ATOMS):
-		point, = ax.plot([ATOM_COORDS[atom][2][0]], [ATOM_COORDS[atom][1][0]], [ATOM_COORDS[atom][0][0]], 'o')
+		point, = ax.plot([ATOM_COORDS[atom][2][0]], [ATOM_COORDS[atom][1][0]], 
+			             [ATOM_COORDS[atom][0][0]], 'o')
 		points.append(point)
 
 	ax.legend()
-	ax.set_xlim([-2, 2])
-	ax.set_ylim([-2, 2])
-	ax.set_zlim([-2, 2])
+	ax.set_xlim([-1, 1])
+	ax.set_ylim([-1, 1])
+	ax.set_zlim([-1, 1])
 
 	animations = list()
 	for atom in range(N_ATOMS):
-		animations.append(animation.FuncAnimation(fig, update_point, N_ITERATIONS, fargs=(ATOM_COORDS[atom][2], ATOM_COORDS[atom][1], ATOM_COORDS[atom][0], points[atom])))
+		animations.append(animation.FuncAnimation(fig, update_point, 
+			              N_ITERATIONS, interval=20, fargs=(ATOM_COORDS[atom][2], 
+			              ATOM_COORDS[atom][1], ATOM_COORDS[atom][0], 
+			              points[atom])))
 
 	plt.show()
 
 
-get_data("cluster.txt")
-plot()
-# show_data()
+def main(input):
+	# print(input[1])
+	get_data(input[1])
+	plot()
+	# show_data()
+
+if __name__ == '__main__':
+	main(sys.argv)
