@@ -1,2 +1,5 @@
 psi*
 *.pyc
+*.txt
+sim_data/*
+old_files/*
