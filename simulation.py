@@ -9,12 +9,12 @@ for each atom: [atomic symbol] [z coord] [y coord] [x coord]/
 
 
 	TODO:
-		Mass dictionary
 		Switch from Euler-Cromer to Runger4
 		Variational Timestep'''
 
 from OpenFermionWrapper import OpenFermionWrapper
 import sys
+import math
 
 ''' --- Set Constants ---'''
 dt = 10000000*10**-15 #s from fs
@@ -76,14 +76,23 @@ MULTIPLICITY = 0
 CHARGE = 0
 
 def parse_inputs(input):
-	''' This function parses the inputs and sets the global variables 
-		appropriately. It also checks that the user has input the correct
-		number of parameters. If an incorrect number of parameters are input,
-		then the program exits. The number of atoms is determined by the length
-		of the input and the program requires 7 inputs per atom (atomic symbol,
-		z-coord, y-coord, x-coord, z-velocity, y-velocity, x-velocity. It then
-		also obtains the multiplicity and charge of the molecule via the user.
 	''' 
+	ARGS: 
+		input: command line parameters
+
+	RETURNS:
+		void
+
+	This function parses the inputs and sets the global variables 
+	appropriately. It also checks that the user has input the correct
+	number of parameters. If an incorrect number of parameters are input,
+	then the program exits. The number of atoms is determined by the length
+	of the input and the program requires 7 inputs per atom (atomic symbol,
+	z-coord, y-coord, x-coord, z-velocity, y-velocity, x-velocity. It then
+	also obtains the multiplicity and charge of the molecule via the user.
+
+	''' 
+
 	global DATAFILE, MULTIPLICITY, CHARGE, N
 	global INITIAL_VELOCITIES, INITIAL_GEOMETRY, MASSES, MASS_DICT
 
@@ -97,7 +106,7 @@ def parse_inputs(input):
 
 	for i in range(N):
 		atom_i = (i*7)+4
-		print MASS_DICT[str(input[atom_i])]
+		# print MASS_DICT[str(input[atom_i])]
 		MASSES.append(MASS_DICT[str(input[atom_i])])
 		atom = tuple((str(input[atom_i]), (float(input[atom_i+1]), 
 				   float(input[atom_i+2]), float(input[atom_i+3]))))
@@ -108,7 +117,10 @@ def parse_inputs(input):
 
 
 def getGroundState(geometry):
-	''' This function obtains the ground state energy of the given molecule
+	''' 
+	ARGS: 
+
+	This function obtains the ground state energy of the given molecule
 		using the OpenFermionWrapper class, the OpenFermion program, and
 		the Psi4 program. It then converts from units of Hartree and returns
 		the energy of the molecule in eV.'''
@@ -126,6 +138,7 @@ def getGroundState(geometry):
 
 def newGeometry(geometry, velocities):
 	newGeometry = list()
+	print dt
 	for i in range(N): # for each atom in our molecule, update the position
 		z_coord = float(geometry[i][1][0]) + velocities[(i*3)]*dt
 		y_coord = float(geometry[i][1][1]) + velocities[(i*3)+1]*dt
@@ -182,8 +195,8 @@ def findForces(geometry):
 		average_x = (forces[(4*i)+1]-forces[(4*i)+2])/2
 		average_y = (forces[(4*i)+3]-forces[(4*i)+4])/2
 		average_forces.append(0) # not worrying about forces in z yet
-		average_forces.append(average_x)
 		average_forces.append(average_y)
+		average_forces.append(average_x)
 
 	return average_forces
 
@@ -191,13 +204,26 @@ def findForces(geometry):
 def write_data(geometry):
 	data = open(DATAFILE, "a")
 	for i in range(N):
-		data.write("{} {} {} ".format(geometry[i][1][0], geometry[i][1][1],
-									  geometry[i][1][2]))
+		if(i == N-1):
+			data.write("{} {} {}".format(geometry[i][1][0], geometry[i][1][1],
+									     geometry[i][1][2]))
+		else:
+			data.write("{} {} {} ".format(geometry[i][1][0], geometry[i][1][1],
+									      geometry[i][1][2]))
 	data.write("\n")
 	data.close()
 
 
 def update_velocities(velocities, forces):
+	global dt
+	for force in forces:
+		print force
+	largest = abs(max(forces, key=abs))
+	index = forces.index(max(forces, key=abs))
+	mass = MASSES[index/3]
+	fastest = (largest/mass)
+	dt = math.sqrt((0.1*mass)/(largest*10**10))
+	print dt
 	for i in range(0, N):
 		velocity_z = velocities[(i*3)]
 		velocity_y = velocities[(i*3)+1]
