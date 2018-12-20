@@ -125,7 +125,7 @@ class OpenFermionWrapper():
 
             if(self.plugin == 'psi4'):
                 # Run Psi4 calculation protocol
-                run_scf, run_mp2, run_cisd, run_ccsd, run_fci = 1, 1, 1, 1, 1
+                run_scf, run_mp2, run_cisd, run_ccsd, run_fci = 1, 0, 0, 0, 0
 
                 molecule = run_psi4(molecule, run_scf=run_scf, run_mp2=run_mp2,
                                     run_cisd=run_cisd, run_ccsd=run_ccsd,
