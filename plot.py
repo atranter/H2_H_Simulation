@@ -74,6 +74,6 @@ def plot():
 	plt.show()
 
 
-get_data("test.txt")
+get_data("cluster.txt")
 plot()
 # show_data()
