@@ -19,10 +19,10 @@ import math
 ''' --- Set Constants ---'''
 dt = 10000000*10**-15 #s from fs
 dx = 0.001 #angstrom
-dy = 0.001 #angstrom
+dy = 0.001 #angstrom -> how much a molecule is displaced to find nearby energies
 dz = 0.001 #angstrom
 M = 1000000*938.2720813 #eV/c^2 -> this needs to become a dictionary
-ITERATIONS = 30
+ITERATIONS = 300
 BASIS = "sto-3g" #default basis... note -> a larger basis set may dramatically
 				# increase runtime for solving for ground state energy
 
@@ -93,7 +93,7 @@ def parse_inputs(input):
 
 	''' 
 
-	global DATAFILE, MULTIPLICITY, CHARGE, N
+	global DATAFILE, MULTIPLICITY, CHARGE, N, dt
 	global INITIAL_VELOCITIES, INITIAL_GEOMETRY, MASSES, MASS_DICT
 
 	if(((len(input)-4)%7 != 0) or (len(input) < 11)):
@@ -117,28 +117,25 @@ def parse_inputs(input):
 
 
 def getGroundState(geometry):
-	''' 
-	ARGS: 
-
-	This function obtains the ground state energy of the given molecule
-		using the OpenFermionWrapper class, the OpenFermion program, and
-		the Psi4 program. It then converts from units of Hartree and returns
-		the energy of the molecule in eV.'''
-	# print("Entered getGroundState")
-	# print geometry, BASIS, MULTIPLICITY, CHARGE
-	molecule = OpenFermionWrapper()
-	molecule.load_molecule(geometry=geometry,         basis=BASIS, 
-						   multiplicity=MULTIPLICITY, charge=CHARGE,
-						   forceCalculation=True)
-	molecule.set_ground_state_energy()
-	# Convert from Hartree to eV
-	# print("Left getGroundState")
-	return 27.2114*molecule.ground_state_energy
+    ''' 
+    ARGS: 
+    
+    This function obtains the ground state energy of the given molecule
+    	using the OpenFermionWrapper class, the OpenFermion program, and
+    	the Psi4 program. It then converts from units of Hartree and returns
+    	the energy of the molecule in eV.'''
+    molecule = OpenFermionWrapper()
+    molecule.load_molecule(geometry=geometry,         basis=BASIS, 
+    					   multiplicity=MULTIPLICITY, charge=CHARGE,
+    					   forceCalculation=True)
+    molecule.set_ground_state_energy()
+    # Convert from Hartree to eV
+    return 27.2114*molecule.molecule.hf_energy
+    # 	return 27.2114*molecule.ground_state_energy
 
 
 def newGeometry(geometry, velocities):
 	newGeometry = list()
-	print dt
 	for i in range(N): # for each atom in our molecule, update the position
 		z_coord = float(geometry[i][1][0]) + velocities[(i*3)]*dt
 		y_coord = float(geometry[i][1][1]) + velocities[(i*3)+1]*dt
@@ -188,7 +185,7 @@ def findForces(geometry):
 
 	for e in energies:
 		# Store as eV/m
-		forces.append(-1*(energies[0]-e)/(dx*10**-10))
+		forces.append(-1*(e-energies[0])/(dx*10**-10))
 
 	for i in range(N):
 		# index is i*3+1?
@@ -212,19 +209,25 @@ def write_data(geometry):
 									      geometry[i][1][2]))
 	data.write("\n")
 	data.close()
+	
+	
+def get_time_step(vi, d, a):
+    vf = math.sqrt((vi**2) + 2*a*d)
+    time = (2*d)/(vi+vf)
+    return time
+
+
+def set_time_step(velocities, forces):
+    global dt
+    index = forces.index(max(forces, key=abs))
+    mass = MASSES[index/3]
+    a = (forces[index]/mass)*10**10
+    dt = get_time_step(velocities[index], 0.01, a)
 
 
 def update_velocities(velocities, forces):
-	global dt
-	for force in forces:
-		print force
-	largest = abs(max(forces, key=abs))
-	index = forces.index(max(forces, key=abs))
-	mass = MASSES[index/3]
-	fastest = (largest/mass)
-	dt = math.sqrt((0.1*mass)/(largest*10**10))
-	print dt
-	for i in range(0, N):
+    # set_time_step(velocities, forces)
+    for i in range(0, N):
 		velocity_z = velocities[(i*3)]
 		velocity_y = velocities[(i*3)+1]
 		velocity_x = velocities[(i*3)+2]
@@ -237,7 +240,7 @@ def update_velocities(velocities, forces):
 		velocities[(i*3)] = velocity_z
 		velocities[(i*3)+1] = velocity_y
 		velocities[(i*3)+2] = velocity_x
-	return velocities
+    return velocities
 
 
 def evolveAll():
