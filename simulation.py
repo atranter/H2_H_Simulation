@@ -245,25 +245,27 @@ def update_velocities(velocities, forces):
     return velocities
 
 
+# NEEDS: timestep, geometry, coordinate index, atom index
+def velocity(timestep, geometry, axis, atom):
+	# FUCK... have to find the force from here
+	# STEP 1: using geometry, find force
+	# STEP 2: find current velocity from velocities array
+	# STEP 3: set current velocity in velocities array to new velocity
+	#         calculated after time=dt
+	# STEP 4: return the estimated velocity after time=timestep
+	return current_vel + (force/mass)*timestep**10**10
 
-def velocity(time, coord, force):
-	velocity = (force/MASSES)
 
-
-
-
-def runge_kutta_4(time, coord, h, force):
+def runge_kutta_4(coord, force, mass):
 	global dt
-	n = (int)(dt/h)
-	for i in range(n):
-		k1 = h*velocity(time, coord, force)
-		k2 = h*velocity(time+(0.5*h), coord+(0.5*k1), force)
-		k3 = h*velocity(time+(0.5*h), coord+(0.5*k2), force)
-		k4 = h*velocity(time+h,       coord+k3,       force)
+	# NOTE, MUST STORE CURRENT VELOCITIES
+	k1 = dt*velocity(0, coord, force)
+	k2 = dt*velocity((0.5*dt), coord+(0.5*k1), force, mass, current_vel)
+	k3 = dt*velocity((0.5*dt), coord+(0.5*k2), force, mass, current_vel)
+	k4 = dt*velocity(dt,       coord+k3,       force, mass, current_vel)
 
-		coord += (1.0/6.0)*(k1 + 2*k2 + 2*k3 + k4)
+	coord += (1.0/6.0)*(k1 + 2*k2 + 2*k3 + k4)
 
-		time += h
 	return coord
 
 
