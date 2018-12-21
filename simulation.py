@@ -9,7 +9,9 @@ for each atom: [atomic symbol] [z coord] [y coord] [x coord]/
 
 
 	TODO:
-		Switch from Euler-Cromer to Runger4
+		Runge-Kutta 4
+			Q: do we set dxdt aka velocity to be directly determined from force?
+			or do we recalculate force everytime?
 		Variational Timestep'''
 
 from OpenFermionWrapper import OpenFermionWrapper
@@ -134,7 +136,7 @@ def getGroundState(geometry):
     # 	return 27.2114*molecule.ground_state_energy
 
 
-def newGeometry(geometry, velocities):
+def update_positions_EC(geometry, velocities):
 	newGeometry = list()
 	for i in range(N): # for each atom in our molecule, update the position
 		z_coord = float(geometry[i][1][0]) + velocities[(i*3)]*dt
@@ -243,28 +245,62 @@ def update_velocities(velocities, forces):
     return velocities
 
 
+
+def velocity(time, coord, force):
+	velocity = (force/MASSES)
+
+
+
+
+def runge_kutta_4(time, coord, h, force):
+	global dt
+	n = (int)(dt/h)
+	for i in range(n):
+		k1 = h*velocity(time, coord, force)
+		k2 = h*velocity(time+(0.5*h), coord+(0.5*k1), force)
+		k3 = h*velocity(time+(0.5*h), coord+(0.5*k2), force)
+		k4 = h*velocity(time+h,       coord+k3,       force)
+
+		coord += (1.0/6.0)*(k1 + 2*k2 + 2*k3 + k4)
+
+		time += h
+	return coord
+
+
+def update_positions_RK(geometry, time, forces):
+	# time is given as the xth iteration, so it can then be calculated using dt
+	global dt
+	time *= dt
+	updated_locations = list()
+	for atom in range(N):
+		mass = MASS_DICT[geometry[atom][0]]
+		z_coord = runge_kutta_4(time, geometry[atom][1][0], h, mass)
+		y_coord = runge_kutta_4(time, geometry[atom][1][1], h, mass)
+		x_coord = runge_kutta_4(time, geometry[atom][1][2], h, mass)
+		updated_locations.append(geometry[atom][0], (z_coord, y_coord, x_coord))
+	return updated_locations
+
+
 def evolveAll():
 	geometry = INITIAL_GEOMETRY
 	velocities = INITIAL_VELOCITIES
-
-	# average_forces should be a list of size N*3 (three forces per atom)
-	average_forces = findForces(geometry)
 
 	# write the current locations of each atom to the data file
 	write_data(geometry)
 
 	for x in range(0,ITERATIONS):
+		# find the new forces given the current positions
+		# average_forces should be a list of size N*3 (three forces per atom)
+		average_forces = findForces(geometry)
+	
 		# determine the new velocities by the forces acting on each atom
 		velocities = update_velocities(velocities, average_forces)
 
 		# evolve the location of each atom to determine the geometry 
-		geometry = newGeometry(geometry, velocities)
+		geometry = update_positions_EC(geometry, velocities)
 
 		# write the current locations of each atom to the data file
 		write_data(geometry)
-
-		# find the forces for the next iteration
-		average_forces = findForces(geometry)
 
 
 def check_parse():
