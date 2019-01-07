@@ -12,7 +12,8 @@ for each atom: [atomic symbol] [z coord] [y coord] [x coord]/
 		Runge-Kutta 4
 			Q: do we set dxdt aka velocity to be directly determined from force?
 			or do we recalculate force everytime?
-		Variational Timestep'''
+		Variational Timestep
+		Update to Z dimension for force finding'''
 
 from OpenFermionWrapper import OpenFermionWrapper
 import sys
@@ -245,45 +246,100 @@ def update_velocities(velocities, forces):
     return velocities
 
 
+def calc_single_force(geometry, atom_i, axis):
+	geometries = list()
+	energies   = list()
+	forces     = list()
+
+	#  Used to get energy of current location
+	geometries.append(geometry)
+
+	#  Get geometry of the molecule with one atom displaced along one axis
+	if(axis == 0):
+		geometries.append(displace_geometry(geometry,  dz,   0,   0, atom_i))
+		geometries.append(displace_geometry(geometry, -dz,   0,   0, atom_i))
+	elif(axis == 1):
+		geometries.append(displace_geometry(geometry,   0,  dy,   0, atom_i))
+		geometries.append(displace_geometry(geometry,   0, -dy,   0, atom_i))
+	elif(axis == 2):
+		geometries.append(displace_geometry(geometry,   0,   0,  dx, atom_i))
+		geometries.append(displace_geometry(geometry,   0,   0, -dx, atom_i))
+
+	for g in geometries:
+		# Energy given in eV
+		energies.append(getGroundState(g))
+
+	for e in energies:
+		# Store as eV/m
+		forces.append(-1*(e-energies[0])/(dx*10**-10))
+
+	return (forces[1]-forces[2])/2
+
+
 # NEEDS: timestep, geometry, coordinate index, atom index
-def velocity(timestep, geometry, axis, atom):
+def velocity(timestep, current_vel, force, mass):
 	# FUCK... have to find the force from here
 	# STEP 1: using geometry, find force
+	# 			a use: geometry, coord index, atom index
+	#			b displace specific coordinate of specific atom and find average
+	# 				force for that coordinate
 	# STEP 2: find current velocity from velocities array
+	# 
 	# STEP 3: set current velocity in velocities array to new velocity
 	#         calculated after time=dt
 	# STEP 4: return the estimated velocity after time=timestep
 	return current_vel + (force/mass)*timestep**10**10
 
 
-def runge_kutta_4(coord, force, mass):
+def update_coord(geometry, mass, atom_i, axis, velocities):
 	global dt
+	coord = geometry[atom_i][1][axis]
+	current_vel = velocities[(atom_i*3)+axis]
+	force = calc_single_force(geometry, atom_i, axis)
+
+	k1v = velocity(0,          current_vel,              force, mass)
+	k2v = velocity(0 + (dt/2), current_vel + (k1v*dt/2), force, mass)
+	k3v = velocity(0 + (dt/2), current_vel + (k2v*dt/2), force, mass)
+	k4v = velocity(0 + dt,     current_vel + (k3v*dt),   force, mass)
+
+	velocity = current_vel + (k1v + 2*k2v + 2*k3v + k4v)*(dt/6)
+
+	k1 = current_vel
+	k2 = current_vel + k1v*dt/2
+	k3 = current_vel + k2v*dt/2
+	k4 = current_vel + k3v*dt
+
+	coord += (k1 + 2*k2 + 2*k3 + k4)*(dt/6)
+
 	# NOTE, MUST STORE CURRENT VELOCITIES
-	k1 = dt*velocity(0, coord, force)
-	k2 = dt*velocity((0.5*dt), coord+(0.5*k1), force, mass, current_vel)
-	k3 = dt*velocity((0.5*dt), coord+(0.5*k2), force, mass, current_vel)
-	k4 = dt*velocity(dt,       coord+k3,       force, mass, current_vel)
+	# k1 = dt*velocity(0, coord, force)
+	# k2 = dt*velocity((0.5*dt), coord+(0.5*k1), force, mass, current_vel)
+	# k3 = dt*velocity((0.5*dt), coord+(0.5*k2), force, mass, current_vel)
+	# k4 = dt*velocity(dt,       coord+k3,       force, mass, current_vel)
 
-	coord += (1.0/6.0)*(k1 + 2*k2 + 2*k3 + k4)
+	# coord += (1.0/6.0)*(k1 + 2*k2 + 2*k3 + k4)
 
-	return coord
+	return coord, velocity
 
 
-def update_positions_RK(geometry, time, forces):
-	# time is given as the xth iteration, so it can then be calculated using dt
-	global dt
-	time *= dt
+def runge_kutta_4(geometry, velocities):
 	updated_locations = list()
+	updated_velocities = list()
 	for atom in range(N):
 		mass = MASS_DICT[geometry[atom][0]]
-		z_coord = runge_kutta_4(time, geometry[atom][1][0], h, mass)
-		y_coord = runge_kutta_4(time, geometry[atom][1][1], h, mass)
-		x_coord = runge_kutta_4(time, geometry[atom][1][2], h, mass)
+		z_coord, z_vel = update_coord(geometry, mass, atom, 0, velocities)
+		y_coord, y_vel = update_coord(geometry, mass, atom, 1, velocities)
+		x_coord, x_vel = update_coord(geometry, mass, atom, 2, velocities)
 		updated_locations.append(geometry[atom][0], (z_coord, y_coord, x_coord))
-	return updated_locations
+		updated_velocities.append(z_vel)
+		updated_velocities.append(y_vel)
+		updated_velocities.append(x_vel)
+	geometry = updated_locations
+	velocities = updated_velocities
+	return geometry, velocities
 
 
-def Euler_Cromer(geometry, velocities):
+def euler_cromer(geometry, velocities):
 	# find the new forces given the current positions
 	# average_forces should be a list of size N*3 (three forces per atom)
 	average_forces = findForces(geometry)
@@ -307,7 +363,10 @@ def evolve():
 	for x in range(0,ITERATIONS):
 		# use the Euler-Cromer evolution method to approximate the next location
 		# 		for each atom
-		geometry, velocities = Euler_Cromer(geometry, velocities)
+		# geometry, velocities = euler_cromer(geometry, velocities)
+
+		# trying to make Runge-Kutta 4th Order method work
+		geometry, velocities = runge_kutta_4(geometry, velocities)
 
 		# write the current locations of each atom to the data file
 		write_data(geometry)
