@@ -130,10 +130,10 @@ def getGroundState(geometry):
     molecule.load_molecule(geometry=geometry,         basis=BASIS, 
     					   multiplicity=MULTIPLICITY, charge=CHARGE,
     					   forceCalculation=True)
-    molecule.set_ground_state_energy()
+    # molecule.set_ground_state_energy()
     # Convert from Hartree to eV
     return 27.2114*molecule.molecule.hf_energy
-    # 	return 27.2114*molecule.ground_state_energy
+	# return 27.2114*molecule.ground_state_energy
 
 
 def update_positions_EC(geometry, velocities):
