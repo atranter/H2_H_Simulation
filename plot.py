@@ -73,7 +73,7 @@ def plot():
 	animations = list()
 	for atom in range(N_ATOMS):
 		animations.append(animation.FuncAnimation(fig, update_point, 
-			              N_ITERATIONS, interval=2, repeat_delay=1000, 
+			              N_ITERATIONS, interval=1, repeat_delay=1000, 
 			              fargs=(ATOM_COORDS[atom][2], ATOM_COORDS[atom][1], 
 			              	     ATOM_COORDS[atom][0], points[atom])))
 
