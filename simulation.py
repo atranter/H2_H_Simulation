@@ -294,7 +294,7 @@ def Euler_Cromer(geometry, velocities, average_forces):
 	# evolve the location of each atom to determine the geometry 
 	geometry = update_positions_EC(geometry, velocities)
 
-	return geometry, average_forces
+	return geometry, velocities, average_forces
 
 
 def evolve():
@@ -307,7 +307,7 @@ def evolve():
 	for x in range(0,ITERATIONS):
 		# use the Euler-Cromer evolution method to approximate the next location
 		# 		for each atom
-		geometry, average_forces, velocities = Euler_Cromer(
+		geometry, velocities, average_forces = Euler_Cromer(
 										geometry, velocities, average_forces)
 
 		# write the current locations of each atom to the data file
