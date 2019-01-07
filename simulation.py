@@ -277,7 +277,7 @@ def calc_single_force(geometry, atom_i, axis):
 
 
 # NEEDS: timestep, geometry, coordinate index, atom index
-def velocity(timestep, current_vel, force, mass):
+def calc_velocity(timestep, current_vel, force, mass):
 	# FUCK... have to find the force from here
 	# STEP 1: using geometry, find force
 	# 			a use: geometry, coord index, atom index
@@ -297,10 +297,10 @@ def update_coord(geometry, mass, atom_i, axis, velocities):
 	current_vel = velocities[(atom_i*3)+axis]
 	force = calc_single_force(geometry, atom_i, axis)
 
-	k1v = velocity(0,          current_vel,              force, mass)
-	k2v = velocity(0 + (dt/2), current_vel + (k1v*dt/2), force, mass)
-	k3v = velocity(0 + (dt/2), current_vel + (k2v*dt/2), force, mass)
-	k4v = velocity(0 + dt,     current_vel + (k3v*dt),   force, mass)
+	k1v = calc_velocity(0,          current_vel,              force, mass)
+	k2v = calc_velocity(0 + (dt/2), current_vel + (k1v*dt/2), force, mass)
+	k3v = calc_velocity(0 + (dt/2), current_vel + (k2v*dt/2), force, mass)
+	k4v = calc_velocity(0 + dt,     current_vel + (k3v*dt),   force, mass)
 
 	velocity = current_vel + (k1v + 2*k2v + 2*k3v + k4v)*(dt/6)
 
