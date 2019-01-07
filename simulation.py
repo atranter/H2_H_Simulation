@@ -283,7 +283,21 @@ def update_positions_RK(geometry, time, forces):
 	return updated_locations
 
 
-def evolveAll():
+def Euler_Cromer(geometry, velocities, average_forces):
+	# find the new forces given the current positions
+	# average_forces should be a list of size N*3 (three forces per atom)
+	average_forces = findForces(geometry)
+
+	# determine the new velocities by the forces acting on each atom
+	velocities = update_velocities(velocities, average_forces)
+
+	# evolve the location of each atom to determine the geometry 
+	geometry = update_positions_EC(geometry, velocities)
+
+	return geometry, average_forces
+
+
+def evolve():
 	geometry = INITIAL_GEOMETRY
 	velocities = INITIAL_VELOCITIES
 
@@ -291,15 +305,10 @@ def evolveAll():
 	write_data(geometry)
 
 	for x in range(0,ITERATIONS):
-		# find the new forces given the current positions
-		# average_forces should be a list of size N*3 (three forces per atom)
-		average_forces = findForces(geometry)
-	
-		# determine the new velocities by the forces acting on each atom
-		velocities = update_velocities(velocities, average_forces)
-
-		# evolve the location of each atom to determine the geometry 
-		geometry = update_positions_EC(geometry, velocities)
+		# use the Euler-Cromer evolution method to approximate the next location
+		# 		for each atom
+		geometry, average_forces, velocities = 
+			Euler_Cromer(geometry, velocities, average_forces)
 
 		# write the current locations of each atom to the data file
 		write_data(geometry)
@@ -319,7 +328,7 @@ def check_parse():
 def main(input):
 	parse_inputs(input)
 	# check_parse()
-	evolveAll()
+	evolve()
 
 if __name__ == '__main__':
 	main(sys.argv)
