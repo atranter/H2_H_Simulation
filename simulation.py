@@ -330,7 +330,8 @@ def runge_kutta_4(geometry, velocities):
 		z_coord, z_vel = update_coord(geometry, mass, atom, 0, velocities)
 		y_coord, y_vel = update_coord(geometry, mass, atom, 1, velocities)
 		x_coord, x_vel = update_coord(geometry, mass, atom, 2, velocities)
-		updated_locations.append(geometry[atom][0], (z_coord, y_coord, x_coord))
+		updated_locations.append((geometry[atom][0], 
+			                      (z_coord, y_coord, x_coord)))
 		updated_velocities.append(z_vel)
 		updated_velocities.append(y_vel)
 		updated_velocities.append(x_vel)
