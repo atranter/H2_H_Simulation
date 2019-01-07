@@ -288,7 +288,7 @@ def calc_velocity(timestep, current_vel, force, mass):
 	# STEP 3: set current velocity in velocities array to new velocity
 	#         calculated after time=dt
 	# STEP 4: return the estimated velocity after time=timestep
-	return current_vel + (force/mass)*timestep**10**10
+	return current_vel + (force/mass)*timestep*10**10
 
 
 def update_coord(geometry, mass, atom_i, axis, velocities):
