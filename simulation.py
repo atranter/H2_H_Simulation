@@ -71,7 +71,7 @@ MASS_DICT = {"H":  1000000*931.5*1.0079,
 			 "Kr": 1000000*931.5*83.8}
 
 ''' --- From Command Line/Input --- '''
-DATAFILE = "uhoh"
+DATAFILE = "error.txt"
 INITIAL_VELOCITIES = list()
 INITIAL_GEOMETRY = list()
 N = 0 #number of atoms in simulation
@@ -131,10 +131,10 @@ def getGroundState(geometry):
     molecule.load_molecule(geometry=geometry,         basis=BASIS, 
     					   multiplicity=MULTIPLICITY, charge=CHARGE,
     					   forceCalculation=True)
-    # molecule.set_ground_state_energy()
+    molecule.set_ground_state_energy()
     # Convert from Hartree to eV
-    return 27.2114*molecule.molecule.hf_energy
-	# return 27.2114*molecule.ground_state_energy
+    # return 27.2114*molecule.molecule.hf_energy
+	return 27.2114*molecule.ground_state_energy
 
 
 def update_positions_EC(geometry, velocities):
@@ -297,19 +297,23 @@ def update_coord(geometry, mass, atom_i, axis, velocities):
 	current_vel = velocities[(atom_i*3)+axis]
 	force = calc_single_force(geometry, atom_i, axis)
 
+	# k1v will always be the current_vel since there will be no more accel
 	k1v = calc_velocity(0,          current_vel,              force, mass)
+	# k2v = current_vel + (force/mass)*(dt/2)*10**10
 	k2v = calc_velocity(0 + (dt/2), current_vel + (k1v*dt/2), force, mass)
 	k3v = calc_velocity(0 + (dt/2), current_vel + (k2v*dt/2), force, mass)
 	k4v = calc_velocity(0 + dt,     current_vel + (k3v*dt),   force, mass)
 
 	velocity = current_vel + (k1v + 2*k2v + 2*k3v + k4v)*(dt/6)
 
-	k1 = current_vel
-	k2 = current_vel + k1v*dt/2
-	k3 = current_vel + k2v*dt/2
-	k4 = current_vel + k3v*dt
+	# k1 = current_vel
+	# k2 = current_vel + k1v*dt/2
+	# k3 = current_vel + k2v*dt/2
+	# k4 = current_vel + k3v*dt
 
-	coord += (k1 + 2*k2 + 2*k3 + k4)*(dt/6)
+	# coord += (k1 + 2*k2 + 2*k3 + k4)*(dt/6)
+
+	coord += dt*velocity
 
 	# NOTE, MUST STORE CURRENT VELOCITIES
 	# k1 = dt*velocity(0, coord, force)
