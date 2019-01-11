@@ -339,8 +339,8 @@ def calc_accel_RK4(vel, geometry, atom_i, axis, timestep, mass):
 
 	force = calc_single_force_RK4(est_geometry, atom_i, axis)
 
-	# F = ma   --->    a = F/m
-	return (force/mass)
+	# F = ma   --->    a = F/m; also converts from m to angstrom
+	return (force/mass)*10**10
 
 
 
