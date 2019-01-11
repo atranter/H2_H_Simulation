@@ -315,14 +315,78 @@ def update_RK4(geometry, mass, atom_i, axis, velocities):
 	return coord, velocity
 
 
+def calc_accel_RK4(vel, geometry, atom_i, axis, timestep, mass):
+	''' In order to estimate the acceleration at the given time, we need to:
+			1. Have the velocity, geometry, atom_i, axis, timestep, mass
+			2. Using the given timestep and intial velocity, estimate the 
+				position of the target atom after timestep and update the geo
+			3. Using this new geometry, calculate the average force on the atom
+				in the given coordinate axis
+			4. Return force/mass = acceleration '''
+	# Displacement of the current atom in specified coordinate axis
+	disp = vel*timestep
+
+	# Estimated geometry after timestep
+	est_geometry = list()
+	if(axis == 0):
+		est_geometry = displace_geometry(geometry, disp,     0,    0, atom_i)
+	elif(axis == 1):
+		est_geometry = displace_geometry(geometry,     0, disp,    0, atom_i)
+	elif(axis == 2):
+		est_geometry = displace_geometry(geometry,     0,    0, disp, atom_i)
+	else:
+		sys.exit("\n\nAxis label not understood\n\n")
+
+	force = calc_single_force_RK4(est_geometry, atom_i, axis)
+
+	# F = ma   --->    a = F/m
+	return (force/mass)
+
+
+
+def new_update_RK4(geometry, mass, atom_i, axis, velocities):
+	''' This method for RK4 will basically use the RK4 method to estimate the
+		VELOCITY of the atom after time=dt. This essentially means that the 4
+		terms calculated will be estimates of the ACCELERATION at various 
+		points in the timestep. Then the velocity will be used to calculate
+		the position by evolving the position as if the velocity was held 
+		constant during this stretch. This is because the calculated velocity
+		will be a weighted average for this timestep, already taking into 
+		account its change over time. '''
+	global dt
+	# remember, geometry is a list of objects arranged as:
+	# 							([atom] , ([z], [y], [x]))
+	coord = geometry[atom_i][1][axis]
+	# velocities are stored in a 1D array and stored in order of z, y, x
+	vel_i = velocities[(atom_i*3)+axis]
+
+	# Estimated acceleration at the beginning of the interval
+	a1 = calc_accel_RK4(vel_i,           geometry, atom_i, axis,      0, mass)
+	# First estimated acceleration at (dt/2)
+	a2 = calc_accel_RK4(vel_i+(a1*dt/2), geometry, atom_i, axis, (dt/2), mass)
+	# Second estimated acceleration at (dt/2)
+	a3 = calc_accel_RK4(vel_i+(a2*dt/2), geometry, atom_i, axis, (dt/2), mass)
+	# Estimate of acceleration at the end of the interval - dt
+	a4 = calc_accel_RK4(vel_i+(a3*dt),   geometry, atom_i, axis,     dt, mass)
+
+	# Estimated velocity over interval by calculating the weighted average of
+	# estimated accelerations using the formula tradtionally used in the 
+	# Runge-Kutta 4th order method 
+	vel_f = dt*(a1+2*a2+2*a3+a4)/6
+
+	coord += dt*vel_f
+
+	return coord, vel_f
+
+
 def runge_kutta_4(geometry, velocities):
 	updated_locations = list()
 	updated_velocities = list()
 	for atom in range(N):
 		mass = MASS_DICT[geometry[atom][0]]
-		z_coord, z_vel = update_RK4(geometry, mass, atom, 0, velocities)
-		y_coord, y_vel = update_RK4(geometry, mass, atom, 1, velocities)
-		x_coord, x_vel = update_RK4(geometry, mass, atom, 2, velocities)
+		z_coord, z_vel = new_update_RK4(geometry, mass, atom, 0, velocities)
+		y_coord, y_vel = new_update_RK4(geometry, mass, atom, 1, velocities)
+		x_coord, x_vel = new_update_RK4(geometry, mass, atom, 2, velocities)
 		updated_locations.append((geometry[atom][0], 
 			                      (z_coord, y_coord, x_coord)))
 		updated_velocities.append(z_vel)
