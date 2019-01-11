@@ -119,6 +119,19 @@ def parse_inputs(input):
 		INITIAL_VELOCITIES.append(float(input[atom_i+6]))
 
 
+def write_data(geometry):
+	data = open(DATAFILE, "a")
+	for i in range(N):
+		if(i == N-1):
+			data.write("{} {} {}".format(geometry[i][1][0], geometry[i][1][1],
+									     geometry[i][1][2]))
+		else:
+			data.write("{} {} {} ".format(geometry[i][1][0], geometry[i][1][1],
+									      geometry[i][1][2]))
+	data.write("\n")
+	data.close()
+
+
 def getGroundState(geometry):
     ''' 
     ARGS: 
@@ -134,19 +147,7 @@ def getGroundState(geometry):
     molecule.set_ground_state_energy()
     # Convert from Hartree to eV
     # return 27.2114*molecule.molecule.hf_energy
-	return 27.2114*molecule.ground_state_energy
-
-
-def update_positions_EC(geometry, velocities):
-	newGeometry = list()
-	for i in range(N): # for each atom in our molecule, update the position
-		z_coord = float(geometry[i][1][0]) + velocities[(i*3)]*dt
-		y_coord = float(geometry[i][1][1]) + velocities[(i*3)+1]*dt
-		x_coord = float(geometry[i][1][2]) + velocities[(i*3)+2]*dt
-
-		newGeometry.append(tuple((str(geometry[i][0]), # atomic symbol
-					             (z_coord, y_coord, x_coord)))) # position
-	return newGeometry
+    return 27.2114*molecule.ground_state_energy
 
 
 def displace_geometry(geometry, dz, dy, dx, a):
@@ -161,9 +162,35 @@ def displace_geometry(geometry, dz, dy, dx, a):
 			     float(geometry[i][1][1])+dy,     # update each coordinate
 			     float(geometry[i][1][2])+dx))))
 	return displaced_geometry
+	
+	
+def get_time_step(vi, d, a):
+    vf = math.sqrt((vi**2) + 2*a*d)
+    time = (2*d)/(vi+vf)
+    return time
 
 
-def findForces(geometry):
+def set_time_step(velocities, forces):
+    global dt
+    index = forces.index(max(forces, key=abs))
+    mass = MASSES[index/3]
+    a = (forces[index]/mass)*10**10
+    dt = get_time_step(velocities[index], 0.01, a)
+
+
+def update_positions_EC(geometry, velocities):
+	newGeometry = list()
+	for i in range(N): # for each atom in our molecule, update the position
+		z_coord = float(geometry[i][1][0]) + velocities[(i*3)]*dt
+		y_coord = float(geometry[i][1][1]) + velocities[(i*3)+1]*dt
+		x_coord = float(geometry[i][1][2]) + velocities[(i*3)+2]*dt
+
+		newGeometry.append(tuple((str(geometry[i][0]), # atomic symbol
+					             (z_coord, y_coord, x_coord)))) # position
+	return newGeometry
+
+
+def findForces_EC(geometry):
 	geometries = list()
 	energies = list()
 	forces = list()
@@ -201,34 +228,7 @@ def findForces(geometry):
 	return average_forces
 
 
-def write_data(geometry):
-	data = open(DATAFILE, "a")
-	for i in range(N):
-		if(i == N-1):
-			data.write("{} {} {}".format(geometry[i][1][0], geometry[i][1][1],
-									     geometry[i][1][2]))
-		else:
-			data.write("{} {} {} ".format(geometry[i][1][0], geometry[i][1][1],
-									      geometry[i][1][2]))
-	data.write("\n")
-	data.close()
-	
-	
-def get_time_step(vi, d, a):
-    vf = math.sqrt((vi**2) + 2*a*d)
-    time = (2*d)/(vi+vf)
-    return time
-
-
-def set_time_step(velocities, forces):
-    global dt
-    index = forces.index(max(forces, key=abs))
-    mass = MASSES[index/3]
-    a = (forces[index]/mass)*10**10
-    dt = get_time_step(velocities[index], 0.01, a)
-
-
-def update_velocities(velocities, forces):
+def update_velocities_EC(velocities, forces):
     # set_time_step(velocities, forces)
     for i in range(0, N):
 		velocity_z = velocities[(i*3)]
@@ -246,7 +246,7 @@ def update_velocities(velocities, forces):
     return velocities
 
 
-def calc_single_force(geometry, atom_i, axis):
+def calc_single_force_RK4(geometry, atom_i, axis):
 	geometries = list()
 	energies   = list()
 	forces     = list()
@@ -276,35 +276,24 @@ def calc_single_force(geometry, atom_i, axis):
 	return (forces[1]-forces[2])/2
 
 
-# NEEDS: timestep, geometry, coordinate index, atom index
-def calc_velocity(timestep, current_vel, force, mass):
-	# FUCK... have to find the force from here
-	# STEP 1: using geometry, find force
-	# 			a use: geometry, coord index, atom index
-	#			b displace specific coordinate of specific atom and find average
-	# 				force for that coordinate
-	# STEP 2: find current velocity from velocities array
-	# 
-	# STEP 3: set current velocity in velocities array to new velocity
-	#         calculated after time=dt
-	# STEP 4: return the estimated velocity after time=timestep
+def calc_velocity_RK4(timestep, current_vel, force, mass):
 	return current_vel + (force/mass)*timestep*10**10
 
 
-def update_coord(geometry, mass, atom_i, axis, velocities):
+def update_RK4(geometry, mass, atom_i, axis, velocities):
 	global dt
 	coord = geometry[atom_i][1][axis]
 	current_vel = velocities[(atom_i*3)+axis]
-	force = calc_single_force(geometry, atom_i, axis)
+	force = calc_single_force_RK4(geometry, atom_i, axis)
 
 	# k1v will always be the current_vel since there will be no more accel
-	k1v = calc_velocity(0,          current_vel,              force, mass)
+	k1v = calc_velocity_RK4(0,          current_vel,              force, mass)
 	# k2v = current_vel + (force/mass)*(dt/2)*10**10
-	k2v = calc_velocity(0 + (dt/2), current_vel + (k1v*dt/2), force, mass)
-	k3v = calc_velocity(0 + (dt/2), current_vel + (k2v*dt/2), force, mass)
-	k4v = calc_velocity(0 + dt,     current_vel + (k3v*dt),   force, mass)
+	k2v = calc_velocity_RK4(0 + (dt/2), current_vel + (k1v*dt/2), force, mass)
+	k3v = calc_velocity_RK4(0 + (dt/2), current_vel + (k2v*dt/2), force, mass)
+	k4v = calc_velocity_RK4(0 + dt,     current_vel + (k3v*dt),   force, mass)
 
-	velocity = current_vel + (k1v + 2*k2v + 2*k3v + k4v)*(dt/6)
+	velocity = current_vel + (k1v + 2*k2v + 2*k3v + k4v)/6
 
 	# k1 = current_vel
 	# k2 = current_vel + k1v*dt/2
@@ -331,9 +320,9 @@ def runge_kutta_4(geometry, velocities):
 	updated_velocities = list()
 	for atom in range(N):
 		mass = MASS_DICT[geometry[atom][0]]
-		z_coord, z_vel = update_coord(geometry, mass, atom, 0, velocities)
-		y_coord, y_vel = update_coord(geometry, mass, atom, 1, velocities)
-		x_coord, x_vel = update_coord(geometry, mass, atom, 2, velocities)
+		z_coord, z_vel = update_RK4(geometry, mass, atom, 0, velocities)
+		y_coord, y_vel = update_RK4(geometry, mass, atom, 1, velocities)
+		x_coord, x_vel = update_RK4(geometry, mass, atom, 2, velocities)
 		updated_locations.append((geometry[atom][0], 
 			                      (z_coord, y_coord, x_coord)))
 		updated_velocities.append(z_vel)
@@ -347,10 +336,10 @@ def runge_kutta_4(geometry, velocities):
 def euler_cromer(geometry, velocities):
 	# find the new forces given the current positions
 	# average_forces should be a list of size N*3 (three forces per atom)
-	average_forces = findForces(geometry)
+	average_forces = findForces_EC(geometry)
 
 	# determine the new velocities by the forces acting on each atom
-	velocities = update_velocities(velocities, average_forces)
+	velocities = update_velocities_EC(velocities, average_forces)
 
 	# evolve the location of each atom to determine the geometry 
 	geometry = update_positions_EC(geometry, velocities)
