@@ -121,10 +121,10 @@ def parse_inputs(input):
 
 def write_hamiltonians_to_file(hamiltonian):
 	filename = "hamil_" + DATAFILE
-	data = open(filename, "a")
-	filename.write(hamiltonian)
-	data.write("\n")
-	data.close()
+	file = open(filename, "a")
+	file.write(hamiltonian)
+	file.write("\n")
+	file.close()
 
 
 def write_data(geometry):
@@ -153,9 +153,10 @@ def getGroundState(geometry):
     					   multiplicity=MULTIPLICITY, charge=CHARGE,
     					   forceCalculation=True)
     molecule.set_ground_state_energy()
+    molecule.perform_transform("BK")
     # Convert from Hartree to eV
     # return 27.2114*molecule.molecule.hf_energy
-    return 27.2114*molecule.ground_state_energy, molecule.molecular_hamiltonian
+    return 27.2114*molecule.ground_state_energy, molecule.qubit_hamiltonian_bk
 
 
 def displace_geometry(geometry, dz, dy, dx, a):
