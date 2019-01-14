@@ -384,6 +384,7 @@ def runge_kutta_4(geometry, velocities):
 	updated_velocities = list()
 	for atom in range(N):
 		mass = MASS_DICT[geometry[atom][0]]
+		# Make this multi-threaded
 		z_coord, z_vel = new_update_RK4(geometry, mass, atom, 0, velocities)
 		y_coord, y_vel = new_update_RK4(geometry, mass, atom, 1, velocities)
 		x_coord, x_vel = new_update_RK4(geometry, mass, atom, 2, velocities)
