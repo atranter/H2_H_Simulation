@@ -119,6 +119,14 @@ def parse_inputs(input):
 		INITIAL_VELOCITIES.append(float(input[atom_i+6]))
 
 
+def write_hamiltonians_to_file(hamiltonian):
+	filename = "hamil_" + DATAFILE
+	data = open(filename, "a")
+	filename.write(hamiltonian)
+	data.write("\n")
+	data.close()
+
+
 def write_data(geometry):
 	data = open(DATAFILE, "a")
 	for i in range(N):
@@ -147,7 +155,7 @@ def getGroundState(geometry):
     molecule.set_ground_state_energy()
     # Convert from Hartree to eV
     # return 27.2114*molecule.molecule.hf_energy
-    return 27.2114*molecule.ground_state_energy
+    return 27.2114*molecule.ground_state_energy, molecule.molecular_hamiltonian
 
 
 def displace_geometry(geometry, dz, dy, dx, a):
@@ -190,7 +198,7 @@ def update_positions_EC(geometry, velocities):
 	return newGeometry
 
 
-def findForces_EC(geometry):
+def findForces_EC(geometry, hamil):
 	geometries = list()
 	energies = list()
 	forces = list()
@@ -211,7 +219,10 @@ def findForces_EC(geometry):
 
 	for g in geometries:
 		# Energy given in eV
-		energies.append(getGroundState(g))
+		energy, hamiltonian = getGroundState(g)
+		energies.append(energy)
+		if(hamil):
+			write_hamiltonians_to_file(hamiltonian)
 
 	for e in energies:
 		# Store as eV/m
@@ -398,10 +409,10 @@ def runge_kutta_4(geometry, velocities):
 	return geometry, velocities
 
 
-def euler_cromer(geometry, velocities):
+def euler_cromer(geometry, velocities, hamil=False):
 	# find the new forces given the current positions
 	# average_forces should be a list of size N*3 (three forces per atom)
-	average_forces = findForces_EC(geometry)
+	average_forces = findForces_EC(geometry, hamil)
 
 	# determine the new velocities by the forces acting on each atom
 	velocities = update_velocities_EC(velocities, average_forces)
@@ -422,10 +433,15 @@ def evolve():
 	for x in range(0,ITERATIONS):
 		# use the Euler-Cromer evolution method to approximate the next location
 		# 		for each atom
-		# geometry, velocities = euler_cromer(geometry, velocities)
+		if(x%10 == 0):
+			geometry, velocities = euler_cromer(geometry, velocities, 
+												hamil=True)
+		else:
+			geometry, velocities = euler_cromer(geometry, velocities)
+
 
 		# trying to make Runge-Kutta 4th Order method work
-		geometry, velocities = runge_kutta_4(geometry, velocities)
+		# geometry, velocities = runge_kutta_4(geometry, velocities)
 
 		# write the current locations of each atom to the data file
 		write_data(geometry)
