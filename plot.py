@@ -53,7 +53,7 @@ def update_lines(i, lines):
 	return lines
 
 
-def plot():
+def plot(file):
 	global N_ATOMS, N_ITERATIONS, ATOM_COORDS
 	fig = plt.figure()
 	ax = p3.Axes3D(fig)
@@ -65,9 +65,17 @@ def plot():
 	ax.set_xlim([-1, 1])
 	ax.set_ylim([-1, 1])
 	ax.set_zlim([-1, 1])
+
+	# Set up formatting for the movie files
+	Writer = ani.writers['ffmpeg']
+	writer = Writer(fps=100, metadata=dict(artist='Me'), bitrate=1800)
+
 	line_animation = ani.FuncAnimation(
 		fig, update_lines, N_ITERATIONS, fargs=([lines]), interval=1, 
 		blit=True, repeat=True)
+
+	file = str(file).replace('.txt', '.mp4')
+	line_animation.save(file, writer=writer)
 	plt.show()
 
 
@@ -80,4 +88,4 @@ def plot():
 
 if __name__ == '__main__':
 	get_data(sys.argv[1])
-	plot()
+	plot(sys.argv[1])
