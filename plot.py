@@ -1,8 +1,7 @@
 from matplotlib import pyplot as plt
-# matplotlib.use('agg')
 import numpy as np
 import mpl_toolkits.mplot3d.axes3d as p3
-from matplotlib import animation
+from matplotlib import animation as ani
 import sys
 
 N_ATOMS = 0
@@ -41,11 +40,17 @@ def get_data(filename):
 	file.close()
 
 
-# second option - move the point position at every frame
-def update_point(n, x, y, z, point):
-    point.set_data(np.array([x[n], y[n]]))
-    point.set_3d_properties(z[n], 'z')
-    return point
+def update_lines(i, lines):
+	global ATOM_COORDS, N_ATOMS
+	j = 0
+	if(i > 500):
+		j = i-500
+	for line, atom in zip(lines, range(N_ATOMS)):
+		line.set_data([
+					  ATOM_COORDS[atom][2][j:i],
+					  ATOM_COORDS[atom][1][j:i]])
+		line.set_3d_properties(ATOM_COORDS[atom][0][j:i])
+	return lines
 
 
 def plot():
@@ -53,39 +58,26 @@ def plot():
 	fig = plt.figure()
 	ax = p3.Axes3D(fig)
 
-	for atom in ATOM_COORDS:
-		atom[0] = np.asarray(atom[0])
-		atom[1] = np.asarray(atom[1])
-		atom[2] = np.asarray(atom[2])
+	lines = [ax.plot([ATOM_COORDS[atom][2][0]], 
+					 [ATOM_COORDS[atom][1][0]], 
+					 [ATOM_COORDS[atom][0][0]], '-', lw=1)[0] for atom in range(N_ATOMS)]
 
-	# create the first plot
-	points = list()
-	for atom in range(N_ATOMS):
-		point, = ax.plot([ATOM_COORDS[atom][2][0]], [ATOM_COORDS[atom][1][0]], 
-			             [ATOM_COORDS[atom][0][0]], 'o')
-		points.append(point)
-
-	ax.legend()
-	ax.set_xlim([-2, 2])
-	ax.set_ylim([-2, 2])
-	ax.set_zlim([-2, 2])
-
-	animations = list()
-	for atom in range(N_ATOMS):
-		animations.append(animation.FuncAnimation(fig, update_point, 
-			              N_ITERATIONS, interval=1, repeat_delay=1000, 
-			              fargs=(ATOM_COORDS[atom][2], ATOM_COORDS[atom][1], 
-			              	     ATOM_COORDS[atom][0], points[atom])))
-
+	ax.set_xlim([-1, 1])
+	ax.set_ylim([-1, 1])
+	ax.set_zlim([-1, 1])
+	line_animation = ani.FuncAnimation(
+		fig, update_lines, N_ITERATIONS, fargs=([lines]), interval=1, 
+		blit=True, repeat=True)
 	plt.show()
 
 
-def main(input):
-	# print(input[1])
-	get_data(input[1])
-	plot()
-	# show_data()
+
+
+
+
+
 
 
 if __name__ == '__main__':
-	main(sys.argv)
+	get_data(sys.argv[1])
+	plot()
