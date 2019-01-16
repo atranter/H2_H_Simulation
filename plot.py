@@ -53,7 +53,7 @@ def update_lines(i, lines):
 	return lines
 
 
-def plot_lines(file):
+def plot_lines(file, save=False):
 	global N_ATOMS, N_ITERATIONS, ATOM_COORDS
 	fig = plt.figure()
 	ax = p3.Axes3D(fig)
@@ -66,16 +66,17 @@ def plot_lines(file):
 	ax.set_ylim([-1, 1])
 	ax.set_zlim([-1, 1])
 
-	# Set up formatting for the movie files
-	# Writer = ani.writers['ffmpeg']
-	# writer = Writer(fps=100, metadata=dict(artist='Me'), bitrate=1800)
-
 	line_animation = ani.FuncAnimation(
 		fig, update_lines, N_ITERATIONS, fargs=([lines]), interval=1, 
 		blit=True, repeat=True)
 
-	# file = str(file).replace('.txt', '.mp4')
-	# line_animation.save(file, writer=writer)
+	if(save):
+		# Set up formatting for the movie files
+		Writer = ani.writers['ffmpeg']
+		writer = Writer(fps=100, metadata=dict(artist='Me'), bitrate=1800)
+		file = str(file).replace('.txt', '_lines.mp4')
+		line_animation.save(file, writer=writer)
+
 	plt.show()
 
 
@@ -89,7 +90,7 @@ def update_points(i, points):
 	return points
 
 
-def plot_points(file):
+def plot_points(file, save=False):
 	global N_ATOMS, N_ITERATIONS, ATOM_COORDS
 	fig = plt.figure()
 	ax = p3.Axes3D(fig)
@@ -100,20 +101,33 @@ def plot_points(file):
 	ax.set_ylim([-1, 1])
 	ax.set_zlim([-1, 1])
 
-	# Set up formatting for the movie files
-	# Writer = ani.writers['ffmpeg']
-	# writer = Writer(fps=100, metadata=dict(artist='Me'), bitrate=1800)
-
 	point_animation = ani.FuncAnimation(
 		fig, update_points, N_ITERATIONS, fargs=([points]), interval=1, 
 		blit=True, repeat=True)
 
-	# file = str(file).replace('.txt', '.mp4')
-	# line_animation.save(file, writer=writer)
+	if(save):
+		# Set up formatting for the movie files
+		Writer = ani.writers['ffmpeg']
+		writer = Writer(fps=100, metadata=dict(artist='Me'), bitrate=1800)
+		file = str(file).replace('.txt', '_points.mp4')
+		line_animation.save(file, writer=writer)
+	
 	plt.show()
 
 
 if __name__ == '__main__':
+	save = False
+	if(len(sys.argv) == 3):
+		if(sys.argv[2] == "y"):
+			save = True
+		elif(sys.argv[2] == "n"):
+			save = False
+		else:
+			sys.exit('''\n\n----Error: Could not understand save command: {} ----\n\n'''
+			   .format(sys.argv[2]))
+	elif(len(sys.argv) != 2):
+		sys.exit("\n\n----Error: Incorrect number of input parameters----\n\n")
+
 	get_data(sys.argv[1])
-	plot_lines(sys.argv[1])
-	# plot_points(sys.argv[1])
+	plot_lines(sys.argv[1], save=save)
+	# plot_points(sys.argv[1], save=save)
