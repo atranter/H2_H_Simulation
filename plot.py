@@ -53,7 +53,7 @@ def update_lines(i, lines):
 	return lines
 
 
-def plot(file):
+def plot_lines(file):
 	global N_ATOMS, N_ITERATIONS, ATOM_COORDS
 	fig = plt.figure()
 	ax = p3.Axes3D(fig)
@@ -67,25 +67,53 @@ def plot(file):
 	ax.set_zlim([-1, 1])
 
 	# Set up formatting for the movie files
-	Writer = ani.writers['ffmpeg']
-	writer = Writer(fps=100, metadata=dict(artist='Me'), bitrate=1800)
+	# Writer = ani.writers['ffmpeg']
+	# writer = Writer(fps=100, metadata=dict(artist='Me'), bitrate=1800)
 
 	line_animation = ani.FuncAnimation(
 		fig, update_lines, N_ITERATIONS, fargs=([lines]), interval=1, 
 		blit=True, repeat=True)
 
-	file = str(file).replace('.txt', '.mp4')
-	line_animation.save(file, writer=writer)
+	# file = str(file).replace('.txt', '.mp4')
+	# line_animation.save(file, writer=writer)
 	plt.show()
 
 
+def update_points(i, points):
+	global ATOM_COORDS, N_ATOMS
+	for point, atom in zip(points, range(N_ATOMS)):
+		point.set_data([
+					  ATOM_COORDS[atom][2][i],
+					  ATOM_COORDS[atom][1][i]])
+		point.set_3d_properties(ATOM_COORDS[atom][0][i])
+	return points
 
 
+def plot_points(file):
+	global N_ATOMS, N_ITERATIONS, ATOM_COORDS
+	fig = plt.figure()
+	ax = p3.Axes3D(fig)
 
+	points = [ax.plot([], [], [], 'o')[0] for atom in range(N_ATOMS)]
 
+	ax.set_xlim([-1, 1])
+	ax.set_ylim([-1, 1])
+	ax.set_zlim([-1, 1])
 
+	# Set up formatting for the movie files
+	# Writer = ani.writers['ffmpeg']
+	# writer = Writer(fps=100, metadata=dict(artist='Me'), bitrate=1800)
+
+	point_animation = ani.FuncAnimation(
+		fig, update_points, N_ITERATIONS, fargs=([points]), interval=1, 
+		blit=True, repeat=True)
+
+	# file = str(file).replace('.txt', '.mp4')
+	# line_animation.save(file, writer=writer)
+	plt.show()
 
 
 if __name__ == '__main__':
 	get_data(sys.argv[1])
-	plot(sys.argv[1])
+	plot_lines(sys.argv[1])
+	# plot_points(sys.argv[1])
