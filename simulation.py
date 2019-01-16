@@ -434,6 +434,9 @@ def euler_cromer(geometry, velocities, hamil=False):
 	# determine the new velocities by the forces acting on each atom
 	velocities = update_velocities_EC(velocities, average_forces)
 
+	for vel in velocities:
+		print vel
+
 	# evolve the location of each atom to determine the geometry 
 	geometry = update_positions_EC(geometry, velocities)
 
