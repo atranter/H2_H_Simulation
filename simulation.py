@@ -284,7 +284,8 @@ def calc_single_force_RK4(geometry, atom_i, axis):
 
 	for e in energies:
 		# Store as eV/m
-		forces.append(-1*(e-energies[0])/(dx*10**-10))
+		energy, hamiltonian = getGroundState(g)
+		energies.append(energy)
 
 	return (forces[1]-forces[2])/2
 
@@ -387,6 +388,8 @@ def new_update_RK4(geometry, mass, atom_i, axis, velocities):
 	# Runge-Kutta 4th order method 
 	vel_f = dt*(a1+2*a2+2*a3+a4)/6
 
+	print vel_f
+
 	coord += dt*vel_f
 
 	return coord, vel_f
@@ -435,15 +438,15 @@ def evolve():
 	for x in range(0,ITERATIONS):
 		# use the Euler-Cromer evolution method to approximate the next location
 		# 		for each atom
-		if(x%10 == 0):
-			geometry, velocities = euler_cromer(geometry, velocities, 
-												hamil=True)
-		else:
-			geometry, velocities = euler_cromer(geometry, velocities)
+		# if(x%10 == 0):
+		# 	geometry, velocities = euler_cromer(geometry, velocities, 
+		# 										hamil=True)
+		# else:
+		# 	geometry, velocities = euler_cromer(geometry, velocities)
 
 
 		# trying to make Runge-Kutta 4th Order method work
-		# geometry, velocities = runge_kutta_4(geometry, velocities)
+		geometry, velocities = runge_kutta_4(geometry, velocities)
 
 		# write the current locations of each atom to the data file
 		write_data(geometry)
