@@ -122,7 +122,8 @@ def parse_inputs(input):
 def write_hamiltonians_to_file(hamiltonian):
 	filename = "hamil_" + DATAFILE
 	file = open(filename, "a")
-	file.write(hamiltonian)
+	file.write(str(hamiltonian))
+	file.write("\n")
 	file.write("\n")
 	file.close()
 
