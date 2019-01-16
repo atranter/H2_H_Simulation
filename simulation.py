@@ -280,12 +280,12 @@ def calc_single_force_RK4(geometry, atom_i, axis):
 
 	for g in geometries:
 		# Energy given in eV
-		energies.append(getGroundState(g))
+		energy, hamiltonian = getGroundState(g)
+		energies.append(energy)
 
 	for e in energies:
 		# Store as eV/m
-		energy, hamiltonian = getGroundState(g)
-		energies.append(energy)
+		forces.append(-1*(e-energies[0])/(dx*10**-10))
 
 	return (forces[1]-forces[2])/2
 
@@ -350,9 +350,9 @@ def calc_accel_RK4(vel, geometry, atom_i, axis, timestep, mass):
 		est_geometry = displace_geometry(geometry,     0,    0, disp, atom_i)
 	else:
 		sys.exit("\n\nAxis label not understood\n\n")
-	print("getting forces")
+
 	force = calc_single_force_RK4(est_geometry, atom_i, axis)
-	print("leaving forces")
+
 	# F = ma   --->    a = F/m; also converts from m to angstrom
 	return (force/mass)*10**10
 
