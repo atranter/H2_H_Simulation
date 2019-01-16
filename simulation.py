@@ -350,9 +350,9 @@ def calc_accel_RK4(vel, geometry, atom_i, axis, timestep, mass):
 		est_geometry = displace_geometry(geometry,     0,    0, disp, atom_i)
 	else:
 		sys.exit("\n\nAxis label not understood\n\n")
-
+	print("getting forces")
 	force = calc_single_force_RK4(est_geometry, atom_i, axis)
-
+	print("leaving forces")
 	# F = ma   --->    a = F/m; also converts from m to angstrom
 	return (force/mass)*10**10
 
@@ -374,19 +374,31 @@ def new_update_RK4(geometry, mass, atom_i, axis, velocities):
 	# velocities are stored in a 1D array and stored in order of z, y, x
 	vel_i = velocities[(atom_i*3)+axis]
 
-	# Estimated acceleration at the beginning of the interval
-	a1 = calc_accel_RK4(vel_i,           geometry, atom_i, axis,      0, mass)
-	# First estimated acceleration at (dt/2)
-	a2 = calc_accel_RK4(vel_i+(a1*dt/2), geometry, atom_i, axis, (dt/2), mass)
-	# Second estimated acceleration at (dt/2)
-	a3 = calc_accel_RK4(vel_i+(a2*dt/2), geometry, atom_i, axis, (dt/2), mass)
-	# Estimate of acceleration at the end of the interval - dt
-	a4 = calc_accel_RK4(vel_i+(a3*dt),   geometry, atom_i, axis,     dt, mass)
+	v1 = vel_i
+	v2 = vel_i + .5*calc_accel_RK4(v1, geometry, atom_i, axis, 0, mass)*dt
+	v3 = vel_i + .5*calc_accel_RK4(v2, geometry, atom_i, axis, .5*dt, mass)*dt
+	v4 = vel_i + .5*calc_accel_RK4(v3, geometry, atom_i, axis, .5*dt, mass)*dt
 
-	# Estimated velocity over interval by calculating the weighted average of
-	# estimated accelerations using the formula tradtionally used in the 
-	# Runge-Kutta 4th order method 
-	vel_f = dt*(a1+2*a2+2*a3+a4)/6
+	a1 = calc_accel_RK4(v1, geometry, atom_i, axis, 0, mass)
+	a2 = 2*calc_accel_RK4(v2, geometry, atom_i, axis, .5*dt, mass)
+	a3 = 2*calc_accel_RK4(v3, geometry, atom_i, axis, .5*dt, mass)
+	a4 = calc_accel_RK4(v4, geometry, atom_i, axis, dt, mass)
+
+	vel_f = vel_i + dt*(a1+a2+a3+a4)/6
+
+	# # Estimated acceleration at the beginning of the interval
+	# a1 = calc_accel_RK4(vel_i,           geometry, atom_i, axis,      0, mass)
+	# # First estimated acceleration at (dt/2)
+	# a2 = calc_accel_RK4(vel_i+(a1*dt/2), geometry, atom_i, axis, (dt/2), mass)
+	# # Second estimated acceleration at (dt/2)
+	# a3 = calc_accel_RK4(vel_i+(a2*dt/2), geometry, atom_i, axis, (dt/2), mass)
+	# # Estimate of acceleration at the end of the interval - dt
+	# a4 = calc_accel_RK4(vel_i+(a3*dt),   geometry, atom_i, axis,     dt, mass)
+
+	# # Estimated velocity over interval by calculating the weighted average of
+	# # estimated accelerations using the formula tradtionally used in the 
+	# # Runge-Kutta 4th order method 
+	# vel_f = dt*(a1+2*a2+2*a3+a4)/6
 
 	print vel_f
 
