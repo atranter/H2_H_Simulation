@@ -13,6 +13,19 @@ ATOM_COORDS = list()
 
 
 def get_data(filename):
+	''' 
+	ARGS:
+		filename - a string with the local location of the file with the stored
+				   data
+	RETURNS:
+		None (sets the global variables N_ATOMS, N_ITERATIONS, ATOM_COORDS)
+
+	This function parses the input file into the data structures used in this
+	script. The datafile must contain the positions of atoms in the format
+		[atom1_z] [atom1_y] [atom1_x] ... for every atom in the molecule
+	Each new line is the updated coordinate positions after the next timestep.
+
+	'''
 	global N_ITERATIONS, N_ATOMS
 
 	file = open(filename, "r")
@@ -41,6 +54,17 @@ def get_data(filename):
 
 
 def update_lines(i, lines):
+	''' 
+	ARGS:
+		i - integer index of the current iteration
+		lines - an array of ax.plot() objects that represent lines
+	RETURNS:
+		lines - updated array of ax.plot() objects
+	
+	This function updates the lines in the animation to the next points. After
+	500 iterations, the end of the line will begin to disappear as the front
+	continues to move (only a maximum of 500 points are included in the line). 
+	'''
 	global ATOM_COORDS, N_ATOMS
 	j = 0
 	if(i > 500):
@@ -54,6 +78,22 @@ def update_lines(i, lines):
 
 
 def plot_lines(file, save=False):
+	'''
+	ARGS: 
+		file - string with the local location of the data file. Will be used 
+			   to save the movie in mp4 format
+		save - a boolean (preset to False) that determines whether or not to
+			   save the movie
+	RETURNS:
+		none
+
+	This function plots the evolution of the molecule over time using lines. 
+	A line for every atom is used to more clearly show the path of the atoms
+	over time. A plot of this animation is shown through the display (client
+	must make sure to set the display variables correctly) and is saved to mp4
+	format depending on the value of the save variable. This function primarily
+	depends on the matplotlib plots and animations. 
+	'''
 	global N_ATOMS, N_ITERATIONS, ATOM_COORDS
 	fig = plt.figure()
 	ax = p3.Axes3D(fig)
@@ -81,6 +121,15 @@ def plot_lines(file, save=False):
 
 
 def update_points(i, points):
+	''' 
+	ARGS:
+		i - integer index of the current iteration
+		points - an array of ax.plot() objects that represent points
+	RETURNS:
+		points - updated array of ax.plot() objects
+	
+	This function updates the points in the animation to the next locations.
+	'''
 	global ATOM_COORDS, N_ATOMS
 	for point, atom in zip(points, range(N_ATOMS)):
 		point.set_data([
@@ -91,6 +140,22 @@ def update_points(i, points):
 
 
 def plot_points(file, save=False):
+	'''
+	ARGS: 
+		file - string with the local location of the data file. Will be used 
+			   to save the movie in mp4 format
+		save - a boolean (preset to False) that determines whether or not to
+			   save the movie
+	RETURNS:
+		none
+
+	This function plots the evolution of the molecule over time using points. 
+	A point of uniform size is used for each atom. A plot of this animation is 
+	shown through the display (client must make sure to set the display 
+	variables correctly) and is saved to mp4 format depending on the value of 
+	the save variable. This function primarily depends on the matplotlib plots 
+	and animations. 
+	'''
 	global N_ATOMS, N_ITERATIONS, ATOM_COORDS
 	fig = plt.figure()
 	ax = p3.Axes3D(fig)
