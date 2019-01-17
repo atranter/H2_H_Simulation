@@ -16,14 +16,17 @@ class OpenFermionWrapper():
     created to keep in mind that client programs may want to restructure the
     created data. Hence, in contrast to normal programming design, there will
     be no private members of this class.
+    
     Typical Progression:
     Set variables using setter functions
     load_molecule
     create_hamiltonians
     perform_transform
     generate_circuit
+    
     Author: William A. Simon
     Date: 12/7/2018
+    
     TODO:
     support BKSF, BKTree, Parity mappings
     get N lowest energy states
@@ -81,14 +84,31 @@ class OpenFermionWrapper():
         self.plugin = plugin
 
     def mapping_error(self, mapping):
-        ''' A simple helper function to print and exit with an error related
-                to an incorrect mapping request. '''
+        ''' 
+        ARGS:
+            mapping - a string
+        RETURNS:
+            None
+        A simple helper function to print and exit with an error related
+        to an incorrect mapping request. 
+        '''
         sys.exit('''\n\n --- OpenFermionWrapper Error ---\n 
              Mapping: {} was not recognized'''.format(mapping))
 
     def set_parameters(self, geometry, basis, multiplicity, charge):
-        # Use setter functions in case client has not set from outside the
-        #      wrapper
+        ''' 
+        ARGS:
+            geometry - Geometry of the molecule in the OpenFermion/Psi4 syntax
+            basis - a string defining the chosen basis
+            multiplicity - integer
+            charge - integer
+        RETURNS:
+            None
+
+        A helper function typically called by this class to set the necessary
+        variables defining the desired molecule if they have not been set yet.
+        This function calls the simple setter functions for the input variables.
+        '''
         if(self.geometry == None):
             self.set_geometry(geometry)
         if(self.basis == None):
@@ -99,6 +119,17 @@ class OpenFermionWrapper():
             self.set_charge(charge)
 
     def check_parameters(self):
+        ''' 
+        ARGS:
+            None
+
+        RETURNS:
+            None
+
+        Helper function to make sure the necessary parameters have been
+        set. If they have not been, system exits with an error message.
+
+        ''' 
         if((self.geometry == None)     or (self.basis == None) or
            (self.multiplicity == None) or (self.charge == None)):
             sys.exit('''\n\n --- OpenFermionWrapper Error ---\n 
@@ -106,6 +137,29 @@ class OpenFermionWrapper():
 
     def load_molecule(self, geometry=None, basis=None, multiplicity=None, 
        charge=None, forceCalculation=False):
+        ''' 
+        ARGS:
+            Necessary: None
+            Optional: geometry - Geometry of the molecule in the 
+                                 OpenFermion/Psi4 syntax
+                      basis - a string defining the chosen basis
+                      multiplicity - integer
+                      charge - integer
+                      forceCalculation - a boolean (preset to false) that will
+                                         force the run_psi4 method when set
+                                         to True instead of loading the saved
+                                         integral calculations
+
+        RETURNS:
+            None
+
+        This function is designed to handle the generation of a molecule 
+        primarily using the MolecularData.load() method of OpenFerimon. For
+        this method to work properly, integral calculations must be made prior
+        through the use of psi4 (and pyscf in later versions). The MolecularData
+        object is then stored under the self.molecule parameter of this class.
+
+        '''
 
         self.set_parameters(geometry, basis, multiplicity, charge)
         self.check_parameters()
@@ -143,9 +197,21 @@ class OpenFermionWrapper():
         self.molecule = molecule
 
     def create_hamiltonians(self):
-        ''' This function is designed to generate the fermion hamiltonian and
-            qubit hamiltonians for both the transformations allowed in 
-            OpenFermion. '''
+        ''' 
+        ARGS:
+            None
+        RETURNS: 
+            None
+
+        This function is designed to generate the fermion hamiltonian and
+        qubit hamiltonians for both of the transformations (Bravyi-Kitaev and
+        Jordan-Wigner) allowed in OpenFermion. To reduce logical errors, checks
+        are made prior to the transform to ensure the molecule has been
+        generated. If not, this function will call the load_molecule method. 
+        Additionally, relevant values are stored in the molecular_hamiltonian,
+        fermion_hamiltonian, and n_qubits members of this class.
+
+        '''
 
         # Try to load the molecule if the client has not yet loaded it 
         if(not self.molecule):
@@ -165,6 +231,19 @@ class OpenFermionWrapper():
         self.n_qubits = count_qubits(self.fermion_hamiltonian)
 
     def set_ground_state_energy(self):
+        ''' 
+        ARGS:
+            None
+        RETURNS:
+            None
+
+        This function uses the fermion hamiltonian to calculate the ground state
+        energy of the given molecule using the get_ground_state method of
+        OpenFermion. The energy is stored as a floating point number in the 
+        ground_state_energy variable of this class. 
+        If the fermion hamiltonain is not generated, this function will call
+        the create_hamiltonians method prior to calculating the energy. 
+        '''
         if(not self.fermion_hamiltonian):
             self.create_hamiltonians()
 
@@ -173,11 +252,18 @@ class OpenFermionWrapper():
 
     def perform_transform(self, mapping):
         ''' 
+        ARGS:
+            mapping - a string determining the desired tranformation method
+        RETURNS:
+            None
+
         This function performs the approprate transformation to the 
         FermionOperator representing the current molecule. 
         The currently supported mappings are:
             Bravyi-Kitaev ("BK")
             Jordan-Wigner ("JW")
+        The Qubit Hamiltonians are stored under the qubit_hamiltonian_bk or
+        qubit_hamiltonian_jw variables. 
         '''
 
         # Attempt to catch user logic error
@@ -193,6 +279,11 @@ class OpenFermionWrapper():
 
     def generate_circuit(self, mapping=None):
         ''' 
+        ARGS:
+            Optional - mapping - a string determining the desired tranformation 
+        RETURNS:
+            None
+
         This function uses the built-in cability in OpenFermion to create
         a quantum circuit in QASM that represents the exponentiation of the 
         hamiltonian over time using the Trotter-Suzuki decomposition method.
