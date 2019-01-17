@@ -5,15 +5,11 @@ for each atom: [atomic symbol] [z coord] [y coord] [x coord]/
 
 	EXAMPLE FORMAT:
 	python simulation.py example.txt 1 0 H 0 0 0 0 0 0 H 0 0 0.7414 0 0 0
-
-
+	^above simulates the H2 molecule at equilibrium bond-length
 
 	TODO:
-		Runge-Kutta 4
-			Q: do we set dxdt aka velocity to be directly determined from force?
-			or do we recalculate force everytime?
-		Variational Timestep
-		Update to Z dimension for force finding'''
+
+'''
 
 from OpenFermionWrapper import OpenFermionWrapper
 import sys
@@ -290,45 +286,6 @@ def calc_single_force_RK4(geometry, atom_i, axis):
 	return (forces[1]-forces[2])/2
 
 
-def calc_velocity_RK4(timestep, current_vel, force, mass):
-	return current_vel + (force/mass)*timestep*10**10
-
-
-def update_RK4(geometry, mass, atom_i, axis, velocities):
-	global dt
-	coord = geometry[atom_i][1][axis]
-	current_vel = velocities[(atom_i*3)+axis]
-	force = calc_single_force_RK4(geometry, atom_i, axis)
-
-	# k1v will always be the current_vel since there will be no more accel
-	k1v = calc_velocity_RK4(0,          current_vel,              force, mass)
-	# k2v = current_vel + (force/mass)*(dt/2)*10**10
-	k2v = calc_velocity_RK4(0 + (dt/2), current_vel + (k1v*dt/2), force, mass)
-	k3v = calc_velocity_RK4(0 + (dt/2), current_vel + (k2v*dt/2), force, mass)
-	k4v = calc_velocity_RK4(0 + dt,     current_vel + (k3v*dt),   force, mass)
-
-	velocity = current_vel + (k1v + 2*k2v + 2*k3v + k4v)/6
-
-	# k1 = current_vel
-	# k2 = current_vel + k1v*dt/2
-	# k3 = current_vel + k2v*dt/2
-	# k4 = current_vel + k3v*dt
-
-	# coord += (k1 + 2*k2 + 2*k3 + k4)*(dt/6)
-
-	coord += dt*velocity
-
-	# NOTE, MUST STORE CURRENT VELOCITIES
-	# k1 = dt*velocity(0, coord, force)
-	# k2 = dt*velocity((0.5*dt), coord+(0.5*k1), force, mass, current_vel)
-	# k3 = dt*velocity((0.5*dt), coord+(0.5*k2), force, mass, current_vel)
-	# k4 = dt*velocity(dt,       coord+k3,       force, mass, current_vel)
-
-	# coord += (1.0/6.0)*(k1 + 2*k2 + 2*k3 + k4)
-
-	return coord, velocity
-
-
 def calc_accel_RK4(vel, geometry, atom_i, axis, timestep, mass):
 	''' In order to estimate the acceleration at the given time, we need to:
 			1. Have the velocity, geometry, atom_i, axis, timestep, mass
@@ -379,28 +336,19 @@ def new_update_RK4(geometry, mass, atom_i, axis, velocities):
 	v3 = vel_i + .5*calc_accel_RK4(v2, geometry, atom_i, axis, .5*dt, mass)*dt
 	v4 = vel_i + .5*calc_accel_RK4(v3, geometry, atom_i, axis, .5*dt, mass)*dt
 
+	# Estimated acceleration at the beginning of the interval
 	a1 = calc_accel_RK4(v1, geometry, atom_i, axis, 0, mass)
+	# First estimated acceleration at (dt/2)
 	a2 = 2*calc_accel_RK4(v2, geometry, atom_i, axis, .5*dt, mass)
+	# Second estimated acceleration at (dt/2)
 	a3 = 2*calc_accel_RK4(v3, geometry, atom_i, axis, .5*dt, mass)
+	# Estimate of acceleration at the end of the interval - dt
 	a4 = calc_accel_RK4(v4, geometry, atom_i, axis, dt, mass)
-
+	
+	# Estimated velocity over interval by calculating the weighted average of
+	# estimated accelerations using the formula tradtionally used in the 
+	# Runge-Kutta 4th order method 
 	vel_f = vel_i + dt*(a1+a2+a3+a4)/6
-
-	# # Estimated acceleration at the beginning of the interval
-	# a1 = calc_accel_RK4(vel_i,           geometry, atom_i, axis,      0, mass)
-	# # First estimated acceleration at (dt/2)
-	# a2 = calc_accel_RK4(vel_i+(a1*dt/2), geometry, atom_i, axis, (dt/2), mass)
-	# # Second estimated acceleration at (dt/2)
-	# a3 = calc_accel_RK4(vel_i+(a2*dt/2), geometry, atom_i, axis, (dt/2), mass)
-	# # Estimate of acceleration at the end of the interval - dt
-	# a4 = calc_accel_RK4(vel_i+(a3*dt),   geometry, atom_i, axis,     dt, mass)
-
-	# # Estimated velocity over interval by calculating the weighted average of
-	# # estimated accelerations using the formula tradtionally used in the 
-	# # Runge-Kutta 4th order method 
-	# vel_f = dt*(a1+2*a2+2*a3+a4)/6
-
-	print vel_f
 
 	coord += dt*vel_f
 
@@ -433,9 +381,6 @@ def euler_cromer(geometry, velocities, hamil=False):
 
 	# determine the new velocities by the forces acting on each atom
 	velocities = update_velocities_EC(velocities, average_forces)
-
-	for vel in velocities:
-		print vel
 
 	# evolve the location of each atom to determine the geometry 
 	geometry = update_positions_EC(geometry, velocities)
