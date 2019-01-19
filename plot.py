@@ -75,10 +75,16 @@ def update_lines(i, lines):
 	continues to move (only a maximum of 500 points are included in the line). 
 	'''
 	global ATOM_COORDS, N_ATOMS
+
+	# j variable keeps track of the beginning of the line
 	j = 0
 	if(i > 500):
+		# If you want to make the line shorter or larger, just decrease or
+		# increase from 500 respectively
 		j = i-500
+
 	for line, atom in zip(lines, range(N_ATOMS)):
+		# update the data that goes into each line
 		line.set_data([
 					  ATOM_COORDS[atom][2][j:i],
 					  ATOM_COORDS[atom][1][j:i]])
