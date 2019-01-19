@@ -1,3 +1,25 @@
+''' 
+Purpose: This file is intended to plot the data produced by simulation.py using
+the matplotlib animation package. These plots can show the atoms as either 
+points in space or lines showing their trajectory. Additionally, these movies
+can be saved in mp4 format, requiring the ffmpeg package to be installed. 
+
+INPUT FORMAT:
+	   python plot.py [datafilename]
+	   or:
+	   python plot.py [datafilename] [y/n]
+
+	   [y/n] determines whether or not to save the movie to disk
+
+Author: William A. Simon
+Date: 12/7/2018
+Last Updated: 1/19/2019
+
+TODO:
+	plot lines or points via command line arguement
+	reduce plot_lines and plot_points to one function
+'''
+
 from matplotlib import pyplot as plt
 import numpy as np
 import mpl_toolkits.mplot3d.axes3d as p3
