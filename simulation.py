@@ -17,21 +17,21 @@ INPUT FORMAT (all on one line):
 for each atom: [atomic symbol] [z coord] [y coord] [x coord]/
 			   [velocity z] [velocity y] [velocity x]
 
-	EXAMPLE FORMAT:
-	python simulation.py example.txt 1 0 H 0 0 0 0 0 0 H 0 0 0.7414 0 0 0
-	^above simulates the H2 molecule at equilibrium bond-length with no initial
-	velocity for either atom in any axis
+EXAMPLE FORMAT:
+python simulation.py example.txt 1 0 H 0 0 0 0 0 0 H 0 0 0.7414 0 0 0
+^above simulates the H2 molecule at equilibrium bond-length with no initial
+velocity for either atom in any axis
 
-	TODO:
-		print hamil for RK4
-		change RK4 to calculate all accelerations at the same time
-		change Initial velocities and geometries from global variables to local
-		change velocity data structure to resemble geometry
-		make it easier to edit the geometry
-		can we make anything multithreaded? - hard with psi4 calculations
+TODO:
+	print hamil for RK4
+	change RK4 to calculate all accelerations at the same time
+	change Initial velocities and geometries from global variables to local
+	change velocity data structure to resemble geometry
+	make it easier to edit the geometry
+	can we make anything multithreaded? - hard with psi4 calculations
 
-	Biggest Time Concern:
-		calling get_ground_state() is by far the bottle-neck of this program
+Biggest Time Concern:
+	calling get_ground_state() is by far the bottle-neck of this program
 
 '''
 
@@ -268,9 +268,9 @@ def get_time_step(vi, d, a):
 	This function calculates the time it would take for an atom with the current
 	velocity and acceleration to traverse the distance provided as input. 
 	''' 
-    vf = math.sqrt((vi**2) + 2*a*d)
-    time = (2*d)/(vi+vf)
-    return time
+	vf = math.sqrt((vi**2) + 2*a*d)
+	time = (2*d)/(vi+vf)
+	return time
 
 
 def set_time_step(velocities, forces):
@@ -283,17 +283,16 @@ def set_time_step(velocities, forces):
 
 	This function attempts to set the time step for the next iteration by
 	determining the time it would take for an atom to traverse a set distance.
-	This method would be used for a variational timestep simulation.
-	''' 
-    global dt
-    # get the index of the atom with the largest acting force 
-    # Note: this should maybe be velocities not forces
-    index = forces.index(max(forces, key=abs))
-    mass = MASSES[index/3]
-    # calculate the acceleration on the given atom
-    a = (forces[index]/mass)*10**10
-    # set the global variable dt with the calculated time
-    dt = get_time_step(velocities[index], 0.01, a)
+	This method would be used for a variational timestep simulation.'''
+	global dt
+	# get the index of the atom with the largest acting force 
+	# Note: this should maybe be velocities not forces
+	index = forces.index(max(forces, key=abs))
+	mass = MASSES[index/3]
+	# calculate the acceleration on the given atom
+	a = (forces[index]/mass)*10**10
+	# set the global variable dt with the calculated time
+	dt = get_time_step(velocities[index], 0.01, a)
 
 
 def update_positions_EC(geometry, velocities):
@@ -399,10 +398,10 @@ def update_velocities_EC(velocities, forces):
 	atom (with respecitve mass) by the associated force (given as input). 
 	''' 
 	# if using variational timestep, uncomment line below
-    # set_time_step(velocities, forces)
+	# set_time_step(velocities, forces)
 
-    # for each atom, calculate the new velocity in all 3 axes after the set time
-    for i in range(0, N):
+	# for each atom, calculate the new velocity in all 3 axes after the set time
+	for i in range(0, N):
 		velocity_z = velocities[(i*3)]
 		velocity_y = velocities[(i*3)+1]
 		velocity_x = velocities[(i*3)+2]
@@ -415,7 +414,7 @@ def update_velocities_EC(velocities, forces):
 		velocities[(i*3)] = velocity_z
 		velocities[(i*3)+1] = velocity_y
 		velocities[(i*3)+2] = velocity_x
-    return velocities
+	return velocities
 
 
 def calc_single_force_RK4(geometry, atom_i, axis):
