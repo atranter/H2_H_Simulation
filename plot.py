@@ -41,15 +41,20 @@ def get_data(filename):
 			# the number of coordinates on the line
 			N_ATOMS = len(coordinates)/3
 
-		for i in range(N_ATOMS):
-			ATOM_COORDS.append([list(), list(), list()])
+		if(ATOM_COORDS == []):
+			# if the ATOM_COORDS list is empty, add an object with 3 empty lists
+			# for each atom to store the z, y, x coordinates at each iteration
+			for i in range(N_ATOMS):
+				ATOM_COORDS.append([list(), list(), list()])
 
 		for i, coord in enumerate(coordinates):
 			atom_i = i/3 # 3 coordinates per atom
 			if(coord == ""):
 				continue 
+			# append the coordinate to the appropriate atom and axis list after
+			# casting it as a float
 			if(i%3 == 0):
-				ATOM_COORDS[atom_i][0].append(float(coord)) # -> atom's list
+				ATOM_COORDS[atom_i][0].append(float(coord))
 			elif(i%3 == 1):
 				ATOM_COORDS[atom_i][1].append(float(coord))
 			else:
