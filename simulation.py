@@ -40,7 +40,7 @@ import sys
 import math
 
 ''' --- Set Constants ---'''
-dt = 1*10**-8 #s from fs
+dt = 5*10**-8 #s from fs
 dx = 0.001 #angstrom
 dy = 0.001 #angstrom -> how much a molecule is displaced to find nearby energies
 dz = 0.001 #angstrom
