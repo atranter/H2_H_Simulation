@@ -6,16 +6,22 @@ import sys
 class OpenFermionWrapper():
     ''' 
     This class is designed to act as a wrapper for the OpenFermion package.
-    This wrapper's focus is to create an interface between a client program
-    and the OpenFermion syntax with an increased ease of use. 
+    The focus is to create an interface between a client program and OpenFermion
+    by simplifying the syntax and progression required in OpenFermion.
     The intended use case for this wrapper is when a client program would
-    like to define a molecule and create the hamiltonian, energy eigenstates, 
-    or a quantum circuit written in QASM of the time evolution of the
-    hamiltonian through the Trotter-Suzuki decomposition method. 
+    like to define a molecule, create the hamiltonian, find the energy 
+    eigenstates, produce a quantum circuit written in QASM of the time evolution
+    of the hamiltonian through the Trotter-Suzuki decomposition method. 
     Given the increased complexity around these use-cases, this wrapper is 
     created to keep in mind that client programs may want to restructure the
-    created data. Hence, in contrast to normal programming design, there will
-    be no private members of this class.
+    created data. Hence, in contrast to typical programming design, all members 
+    of this class are made public.
+
+    Note: Throughout this class, this wrapper will attempt to catch user
+    error as much as possible to further increase the ease of use. For example,
+    if a client calls "create_hamiltonians()" before calling "load_molecule()",
+    the wrapper will call "load_molecule()" before attempting to create the 
+    hamiltonian.
     
     Typical Progression:
     Set variables using setter functions
@@ -26,10 +32,12 @@ class OpenFermionWrapper():
     
     Author: William A. Simon
     Date: 12/7/2018
+    Last Updated: 1/19/2019
     
     TODO:
     support BKSF, BKTree, Parity mappings
     get N lowest energy states
+    decrease number of imports from openfermion
      '''
     def __init__(self):
         self.name = None
