@@ -86,7 +86,7 @@ class OpenFermionWrapper():
     def set_active_space_stop(self, orbital): 
         self.active_space_stop = orbital
     def set_plugin(self, plugin):
-        if((plugin != 'pyscf') and (plugin != "pyscf")):
+        if((plugin != 'pyscf') and (plugin != "psi4")):
             sys.exit('''\n\n --- OpenFermionWrapper Error ---\n 
                            Plugin not recognized\n''')
         self.plugin = plugin
