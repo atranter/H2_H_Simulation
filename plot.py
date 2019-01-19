@@ -113,9 +113,8 @@ def plot_lines(file, save=False):
 	fig = plt.figure()
 	ax = p3.Axes3D(fig)
 
-	lines = [ax.plot([ATOM_COORDS[atom][2][0]], 
-					 [ATOM_COORDS[atom][1][0]], 
-					 [ATOM_COORDS[atom][0][0]], '-', lw=1)[0] for atom in range(N_ATOMS)]
+	# initialize the lines with empty arrays
+	lines = [ax.plot([], [], [], '-', lw=1)[0] for atom in range(N_ATOMS)]
 
 	ax.set_xlim([-1, 1])
 	ax.set_ylim([-1, 1])
@@ -129,6 +128,7 @@ def plot_lines(file, save=False):
 		# Set up formatting for the movie files
 		Writer = ani.writers['ffmpeg']
 		writer = Writer(fps=100, metadata=dict(artist='Me'), bitrate=1800)
+		# save under a similar name to the input filename
 		file = str(file).replace('.txt', '_lines.mp4')
 		line_animation.save(file, writer=writer)
 
@@ -175,6 +175,7 @@ def plot_points(file, save=False):
 	fig = plt.figure()
 	ax = p3.Axes3D(fig)
 
+	# initialize the points with empty arrays
 	points = [ax.plot([], [], [], 'o')[0] for atom in range(N_ATOMS)]
 
 	ax.set_xlim([-1, 1])
@@ -190,24 +191,35 @@ def plot_points(file, save=False):
 		Writer = ani.writers['ffmpeg']
 		writer = Writer(fps=100, metadata=dict(artist='Me'), bitrate=1800)
 		file = str(file).replace('.txt', '_points.mp4')
-		line_animation.save(file, writer=writer)
+		point_animation.save(file, writer=writer)
 	
 	plt.show()
 
 
-if __name__ == '__main__':
+def parse_inputs(input):
+	# default to not saving movies
 	save = False
-	if(len(sys.argv) == 3):
-		if(sys.argv[2] == "y"):
+
+	if(len(input) == 3):
+		# format for 3 input arguements: (plot.py filename y/n)
+		if(input[2] == "y"):
 			save = True
-		elif(sys.argv[2] == "n"):
+		elif(input[2] == "n"):
 			save = False
 		else:
 			sys.exit('''\n\n----Error: Could not understand save command: {} ----\n\n'''
-			   .format(sys.argv[2]))
-	elif(len(sys.argv) != 2):
+			   .format(input[2]))
+	elif(len(input) != 2):
+		# If there are only 2 arguements, they must be (plot.py filename)
+		# and the program assumes the client would not like to save the movie.
+		# If there are not 2 or 3 arguements, the input parameters are undefined
 		sys.exit("\n\n----Error: Incorrect number of input parameters----\n\n")
 
+	return save
+
+
+if __name__ == '__main__':
+	save = parse_inputs(sys.argv)
 	get_data(sys.argv[1])
-	# plot_lines(sys.argv[1], save=save)
-	plot_points(sys.argv[1], save=save)
+	plot_lines(sys.argv[1], save=save)
+	# plot_points(sys.argv[1], save=save)
