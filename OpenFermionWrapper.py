@@ -184,6 +184,9 @@ class OpenFermionWrapper():
         # Determine if integrals have been previously generated or not
         if(not(os.path.exists(molecule.filename + '.hdf5')) or 
               (forceCalculation)):
+            # Note, because of OpenFerimon and Psi4, a different molecular
+            # geometry will not cause recalculation of the molecular integrals
+            # on its own. Therefore, forceCalculation can be used.
 
             if(self.plugin == 'psi4'):
                 # Run Psi4 calculation protocol
