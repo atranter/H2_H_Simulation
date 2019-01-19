@@ -31,11 +31,15 @@ def get_data(filename):
 	file = open(filename, "r")
 
 	for line in file:
-
+		# each line is the geometry at a new point in time 
 		N_ITERATIONS += 1
 
 		coordinates = line.split(" ")
-		N_ATOMS = len(coordinates)/3
+
+		if(N_ATOMS == 0):
+			# each atom has z, y, x coordinates, so the number of atoms follows from
+			# the number of coordinates on the line
+			N_ATOMS = len(coordinates)/3
 
 		for i in range(N_ATOMS):
 			ATOM_COORDS.append([list(), list(), list()])
@@ -194,5 +198,5 @@ if __name__ == '__main__':
 		sys.exit("\n\n----Error: Incorrect number of input parameters----\n\n")
 
 	get_data(sys.argv[1])
-	plot_lines(sys.argv[1], save=save)
-	# plot_points(sys.argv[1], save=save)
+	# plot_lines(sys.argv[1], save=save)
+	plot_points(sys.argv[1], save=save)
