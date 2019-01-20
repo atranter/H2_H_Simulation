@@ -29,16 +29,17 @@ and usage of this program.
 ## Theory
 To estimate the forces acting on every atom during an iteration, each atom is displaced by a small amount
 (in both positive and negative directions) in every coordinate axis. Next, for each configuration, OpenFermion
-is used to calculate the ground state energy. The energy differences between the displaced configuration
+is used to calculate the ground state energy by diagonalizing the hamiltonian. The energy differences between each displaced configuration
 and the original configuration are then used to estimate the average force acting on each atom in all three
 coordinate axes.
 
-To then project the velocity and location of each atom in every coordinate axis, two methods are used. The less
-accurate method, called the Euler-Cromer method, will work for most molecules and can be calculated quicker, 
-however the timestep for each iteration. The second method, called the Runge-Kutta 4th order method, can project
+Next, to project the velocity and location of each atom in every coordinate axis, two methods can be used. The less
+accurate method, called the Euler-Cromer method, will work for most molecules and requires fewer computational resources, 
+however the timestep for each iteration must be shorter. The second method, named Runge-Kutta 4th order, can project
 out to larger timesteps and has increased accuracy, but requires a significantly longer computation time. 
 
-After each iteration, the current geometry and the current velocity of every atom is stored for the next iteration.
+After each iteration, the current geometry and the current velocity of every atom is stored for the next iteration and the
+geometry is appended to the data file.
 
 ## Workflow
 In order to realize the full intended usage of this program, the client should first use the 
@@ -59,6 +60,14 @@ for each atom intended to be in the simulation.
 
 For example: `python simulation.py example.txt 1 0 H 0 0 0 0 0 0 H 0 0 0.96382 0 0 0` 
 simulates the H2 molecule at a bond length of +30% from equilibrium and outputs the data to example.txt
+
+As noted earlier, this file contains additional parameters that can be modified to increase modularity, however, modification of
+these parameters does not guarantee accuracy, so one should verify the data when altered.
+  * dt - timestep for each iteration
+  * ITERATIONS - number of iterations in the simulation
+  * BASIS - basis set for molecular integral calculation (see Psi4 documentation for possible choices)
+  * dz, dy, dx - displacement value used to estimate the forces acting on each atom 
+
 
 **plot.py**
 
