@@ -74,7 +74,7 @@ these parameters does not guarantee accuracy, so one should verify the data when
 
 `python plot.py [datafile] [y/n]`
 
-Where [y/n] (either yes or no) is an optional input and determines whether or not to save the 
+Where [y/n] (either y or n for yes or no) is an optional input and determines whether or not to save the 
 created animation in mp4 format to disk.
 
 For example: `python plot.py sim_data/H2_30%_1000.txt n` shows the evolution of the H2 molecule
