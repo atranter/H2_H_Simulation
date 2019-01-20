@@ -243,5 +243,5 @@ def parse_inputs(input):
 if __name__ == '__main__':
 	save = parse_inputs(sys.argv)
 	get_data(sys.argv[1])
-	plot_lines(sys.argv[1], save=save)
-	# plot_points(sys.argv[1], save=save)
+	# plot_lines(sys.argv[1], save=save)
+	plot_points(sys.argv[1], save=save)
