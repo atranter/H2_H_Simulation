@@ -8,7 +8,8 @@ Through the use of [OpenFermion](https://github.com/quantumlib/OpenFermion),
 [Psi4](http://psicode.org/), and Python, the files in this repository are used to simulate the 
 kinematics of each atom in a molecule, specified by the user on input. The data generated from 
 the `simulation.py` file can then be used as input to the `plot.py` to display the evolution
-of the molecule. These animations can also be saved to mp4 format using the `ffmpeg` package.
+of the molecule. These animations, which are created using `matplotlib` and `mpl_toolkits.mplot3d.axes3d`,
+can also be saved to mp4 format using the `ffmpeg` package.
 
 With the increasing research surrounding Quantum Computing and its applications, this program
 will be used for research intended to demonstrate the possible applications of Quantum Computing to
