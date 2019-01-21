@@ -219,11 +219,26 @@ def plot_points(file, save=False):
 
 
 def parse_inputs(input):
-	# default to not saving movies
-	save = False
+	''' 
+	ARGS: 
+		input: command line parameters (string)
+	RETURNS:
+		save: boolean determining whether to save the animation in mp4 format
+		style: either 'points' or 'lines' to determine the plot style
 
-	if(len(input) == 3):
-		# format for 3 input arguements: (plot.py filename y/n)
+	Purpose:
+		This function is designed to parse the command line parameters. Either
+		the client inputs 4 arguements `plot.py [filename] [y/n] [l/p]` or 2
+		arguements `plot.py [filename]`. If only two arguements are passed, 
+		the program defaults to not saving the movie and plotting the atoms as
+		points. 
+	'''
+	# default to not saving movies and plotting as points
+	save = False
+	style = "points"
+
+	if(len(input) == 4):
+		# format for 4 input arguements: (plot.py filename y/n l/p)
 		if(input[2] == "y"):
 			save = True
 		elif(input[2] == "n"):
@@ -231,17 +246,26 @@ def parse_inputs(input):
 		else:
 			sys.exit('''\n\n----Error: Could not understand save command: {} ----\n\n'''
 			   .format(input[2]))
+		if(input[3] == "l"):
+			style = "lines"
+		elif(input[3] != "p"):
+			sys.exit('''\n\n----Error: Could not understand style command: {} ----\n\n'''
+			   .format(input[3]))
 	elif(len(input) != 2):
 		# If there are only 2 arguements, they must be (plot.py filename)
-		# and the program assumes the client would not like to save the movie.
-		# If there are not 2 or 3 arguements, the input parameters are undefined
+		# and the program assumes the client would not like to save the movie
+		# and defaults to points as the style.
+		# If there are not 2 or 4 arguements, the input parameters are undefined
 		sys.exit("\n\n----Error: Incorrect number of input parameters----\n\n")
 
-	return save
+	return save, style
 
 
 if __name__ == '__main__':
-	save = parse_inputs(sys.argv)
+	save, style = parse_inputs(sys.argv)
 	get_data(sys.argv[1])
-	# plot_lines(sys.argv[1], save=save)
-	plot_points(sys.argv[1], save=save)
+
+	if(style == "lines"):
+		plot_lines(sys.argv[1], save=save)
+	else:
+		plot_points(sys.argv[1], save=save)
