@@ -72,14 +72,19 @@ these parameters does not guarantee accuracy, so one should verify the data when
 
 **plot.py**
 
-`python plot.py [datafile] [y/n]`
+`python plot.py [datafile] [y/n] [l/p]`
 
 Where [y/n] (either y or n for yes or no) is an optional input and determines whether or not to save the 
 created animation in mp4 format to disk.
 
-For example: `python plot.py sim_data/H2_30%_1000.txt n` shows the evolution of the H2 molecule
-with a bond length of +30% from equilibrium over 1000 iterations. To show the animation as either
-points or lines, uncomment the associated line in the `plot.py` file under the main function. 
+And [l/p] (either l or p for lines or points) determines whether or not to plot
+the animation as lines or points. 
+
+The client can either specify both optional parameters or neither. When neither
+is specified, the default is [n] and [p].
+
+For example: `python plot.py sim_data/H2_30%_1000.txt n p` shows the evolution of the H2 molecule
+with a bond length of +30% from equilibrium over 1000 iterations.
 
 ## TODO:
   * requirements.txt
