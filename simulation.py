@@ -588,6 +588,9 @@ def runge_kutta_4(geometry, velocities, hamil=False):
 		updated_velocities.append(z_vel)
 		updated_velocities.append(y_vel)
 		updated_velocities.append(x_vel)
+	if(hamil):
+		ground_state_energy, hamiltonian = getGroundState(geometry)
+		write_hamiltonians_to_file(hamiltonian)
 	return updated_locations, updated_velocities
 
 
@@ -650,10 +653,10 @@ def evolve():
 		# 										hamil=True)
 		# else:
 		# 	geometry, velocities = euler_cromer(geometry, velocities)
-
-
-		# trying to make Runge-Kutta 4th Order method work
-		geometry, velocities = runge_kutta_4(geometry, velocities)
+		if(x%10 == 0):
+			geometry, velocities = runge_kutta_4(geometry, velocities, hamil=True)
+		else:
+			geometry, velocities = runge_kutta_4(geometry, velocities)
 
 		# write the current locations of each atom to the data file
 		write_data(geometry)
