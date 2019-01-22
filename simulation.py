@@ -576,6 +576,21 @@ def runge_kutta_4(geometry, velocities, hamil=False):
 	''' 
 	updated_locations = list()
 	updated_velocities = list()
+	for atom in range(N):
+		# for each atom, find the updated coordinate and velocity in each axis
+		mass = MASS_DICT[geometry[atom][0]]
+		z_coord, z_vel = update_RK4(geometry, mass, atom, 0, velocities)
+		y_coord, y_vel = update_RK4(geometry, mass, atom, 1, velocities)
+		x_coord, x_vel = update_RK4(geometry, mass, atom, 2, velocities)
+		# append the new geometry of the atom
+		updated_locations.append((geometry[atom][0], 
+			                      (z_coord, y_coord, x_coord)))
+		updated_velocities.append(z_vel)
+		updated_velocities.append(y_vel)
+		updated_velocities.append(x_vel)
+	if(hamil):
+		ground_state_energy, hamiltonian = getGroundState(geometry)
+		write_hamiltonians_to_file(hamiltonian)
 	return updated_locations, updated_velocities
 
 
