@@ -559,7 +559,7 @@ def update_RK4(geometry, mass, atom_i, axis, velocities):
 	return coord, vel_f
 
 
-def runge_kutta_4(geometry, velocities):
+def runge_kutta_4(geometry, velocities, hamil=False):
 	''' 
 	ARGS: 
 		geometry: list of tuples in format: 
@@ -588,10 +588,7 @@ def runge_kutta_4(geometry, velocities):
 		updated_velocities.append(z_vel)
 		updated_velocities.append(y_vel)
 		updated_velocities.append(x_vel)
-	# unneccessary reassignment
-	geometry = updated_locations
-	velocities = updated_velocities
-	return geometry, velocities
+	return updated_locations, updated_velocities
 
 
 def euler_cromer(geometry, velocities, hamil=False):
