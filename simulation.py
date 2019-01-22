@@ -39,6 +39,8 @@ from OpenFermionWrapper import OpenFermionWrapper
 import sys
 import math
 
+import timeit
+
 ''' --- Set Constants ---'''
 dt = 5*10**-8 #s from fs
 dx = 0.001 #angstrom
@@ -653,11 +655,13 @@ def evolve():
 		# 										hamil=True)
 		# else:
 		# 	geometry, velocities = euler_cromer(geometry, velocities)
-		if(x%10 == 0):
-			geometry, velocities = runge_kutta_4(geometry, velocities, hamil=True)
-		else:
-			geometry, velocities = runge_kutta_4(geometry, velocities)
-
+		# if(x%10 == 0):
+		# 	geometry, velocities = runge_kutta_4(geometry, velocities, hamil=True)
+		# else:
+		# 	geometry, velocities = runge_kutta_4(geometry, velocities)
+		start = timeit.timeit()
+		# geometry, velocities = runge_kutta_4(geometry, velocities)
+		print(timeit.timeit()-start)
 		# write the current locations of each atom to the data file
 		write_data(geometry)
 
