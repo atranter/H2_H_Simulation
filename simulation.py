@@ -23,12 +23,12 @@ python simulation.py example.txt 1 0 H 0 0 0 0 0 0 H 0 0 0.7414 0 0 0
 velocity for either atom in any axis
 
 TODO:
-	print hamil for RK4
-	change RK4 to calculate all accelerations at the same time
+	multithreading
+	change RK4 to calculate ground energy first, then send along
+	lists -> arrays
 	change Initial velocities and geometries from global variables to local
 	change velocity data structure to resemble geometry
 	make it easier to edit the geometry
-	can we make anything multithreaded? - hard with psi4 calculations
 
 Biggest Time Concern:
 	calling get_ground_state() is by far the bottle-neck of this program
@@ -664,6 +664,7 @@ def evolve():
 	write_data(geometry)
 
 	for x in range(0,ITERATIONS):
+		start = timeit.timeit()
 		# use the Euler-Cromer evolution method to approximate the next location
 		# 		for each atom
 		# if(x%10 == 0):
@@ -671,12 +672,15 @@ def evolve():
 		# 										hamil=True)
 		# else:
 		# 	geometry, velocities = euler_cromer(geometry, velocities)
-		if(x%10 == 0):
-			geometry, velocities = runge_kutta_4(geometry, velocities, hamil=True)
-		else:
-			geometry, velocities = runge_kutta_4(geometry, velocities)
+		# if(x%10 == 0):
+		# 	geometry, velocities = runge_kutta_4(geometry, velocities, hamil=True)
+		# else:
+		# 	geometry, velocities = runge_kutta_4(geometry, velocities)
+		geometry, velocities = runge_kutta_4(geometry, velocities)
 
 		# write the current locations of each atom to the data file
+		end = timeit.timeit()
+		print start - end
 		write_data(geometry)
 
 
