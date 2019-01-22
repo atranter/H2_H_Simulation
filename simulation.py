@@ -38,7 +38,7 @@ Biggest Time Concern:
 from OpenFermionWrapper import OpenFermionWrapper
 import sys
 import math
-import timeit
+import time
 
 import multiprocessing
 from multiprocessing import Process, Manager
@@ -689,9 +689,9 @@ def evolve():
 		# 	geometry, velocities = runge_kutta_4(geometry, velocities, hamil=True)
 		# else:
 		# 	geometry, velocities = runge_kutta_4(geometry, velocities)
-		# start = timeit.timeit()
+		start = time.time()
 		geometry, velocities = runge_kutta_4(geometry, velocities)
-		# print(timeit.timeit()-start)
+		write_hamiltonians_to_file(time.time()-start)
 		# write the current locations of each atom to the data file
 		# write_data(geometry)
 
