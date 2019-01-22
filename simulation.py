@@ -38,6 +38,7 @@ Biggest Time Concern:
 from OpenFermionWrapper import OpenFermionWrapper
 import sys
 import math
+import threading
 
 ''' --- Set Constants ---'''
 dt = 5*10**-8 #s from fs
@@ -559,6 +560,16 @@ def update_RK4(geometry, mass, atom_i, axis, velocities):
 	return coord, vel_f
 
 
+def RK4_helper(geometry, velocities, atom):
+	# for each atom, find the updated coordinate and velocity in each axis
+	mass = MASS_DICT[geometry[atom][0]]
+	z_coord, z_vel = update_RK4(geometry, mass, atom, 0, velocities)
+	y_coord, y_vel = update_RK4(geometry, mass, atom, 1, velocities)
+	x_coord, x_vel = update_RK4(geometry, mass, atom, 2, velocities)
+	# append the new geometry of the atom
+	return atom, z_coord, y_coord, x_coord, z_vel, y_vel, x_vel
+
+
 def runge_kutta_4(geometry, velocities, hamil=False):
 	''' 
 	ARGS: 
@@ -576,6 +587,28 @@ def runge_kutta_4(geometry, velocities, hamil=False):
 	''' 
 	updated_locations = list()
 	updated_velocities = list()
+	threads = []
+	for atom in range(N):
+		threads.append(threading.Thread(target = RK4_helper, args = [geometry, velocities, atom]))
+	for thread in threads:
+		thread.start()
+	for thread in threads:
+		thread.join()
+	# for atom in range(N):
+	# 	# for each atom, find the updated coordinate and velocity in each axis
+	# 	mass = MASS_DICT[geometry[atom][0]]
+	# 	z_coord, z_vel = update_RK4(geometry, mass, atom, 0, velocities)
+	# 	y_coord, y_vel = update_RK4(geometry, mass, atom, 1, velocities)
+	# 	x_coord, x_vel = update_RK4(geometry, mass, atom, 2, velocities)
+	# 	# append the new geometry of the atom
+	# 	updated_locations.append((geometry[atom][0], 
+	# 		                      (z_coord, y_coord, x_coord)))
+	# 	updated_velocities.append(z_vel)
+	# 	updated_velocities.append(y_vel)
+	# 	updated_velocities.append(x_vel)
+	if(hamil):
+		ground_state_energy, hamiltonian = getGroundState(geometry)
+		write_hamiltonians_to_file(hamiltonian)
 	return updated_locations, updated_velocities
 
 
