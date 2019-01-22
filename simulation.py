@@ -38,8 +38,10 @@ Biggest Time Concern:
 from OpenFermionWrapper import OpenFermionWrapper
 import sys
 import math
-
 import timeit
+
+import multiprocessing
+from multiprocessing import Process, Manager
 
 ''' --- Set Constants ---'''
 dt = 5*10**-8 #s from fs
@@ -561,6 +563,18 @@ def update_RK4(geometry, mass, atom_i, axis, velocities):
 	return coord, vel_f
 
 
+def helper(geometry, velocities, atom, updated_locations, updated_velocities):
+	atomic_symbol = geometry[atom][0]
+	mass = MASS_DICT[atomic_symbol]
+	z_coord, z_vel = update_RK4(geometry, mass, atom, 0, velocities)
+	y_coord, y_vel = update_RK4(geometry, mass, atom, 1, velocities)
+	x_coord, x_vel = update_RK4(geometry, mass, atom, 2, velocities)
+	updated_locations.append((atomic_symbol, (z_coord, y_coord, x_coord)))
+	updated_velocities.append(z_vel)
+	updated_velocities.append(y_vel)
+	updated_velocities.append(x_vel)
+
+
 def runge_kutta_4(geometry, velocities, hamil=False):
 	''' 
 	ARGS: 
@@ -576,24 +590,40 @@ def runge_kutta_4(geometry, velocities, hamil=False):
 	This function uses the Runge-Kutta 4th order method to update the positions
 	and velocities of each atom after a time of dt.
 	''' 
-	updated_locations = list()
-	updated_velocities = list()
-	for atom in range(N):
-		# for each atom, find the updated coordinate and velocity in each axis
-		mass = MASS_DICT[geometry[atom][0]]
-		z_coord, z_vel = update_RK4(geometry, mass, atom, 0, velocities)
-		y_coord, y_vel = update_RK4(geometry, mass, atom, 1, velocities)
-		x_coord, x_vel = update_RK4(geometry, mass, atom, 2, velocities)
-		# append the new geometry of the atom
-		updated_locations.append((geometry[atom][0], 
-			                      (z_coord, y_coord, x_coord)))
-		updated_velocities.append(z_vel)
-		updated_velocities.append(y_vel)
-		updated_velocities.append(x_vel)
-	if(hamil):
-		ground_state_energy, hamiltonian = getGroundState(geometry)
-		write_hamiltonians_to_file(hamiltonian)
-	return updated_locations, updated_velocities
+	with Manager() as manager:
+		updated_locations = manager.list()
+		updated_velocities = manager.list()
+		processes = [];
+		for atom in range(N):
+			processes.append(multiprocessing.Process(target = helper,
+			args=(geometry, velocities, atom, updated_locations, updated_velocities)))
+		for process in processes:
+			process.start()
+		for process in processes:
+			process.join()
+		print updated_locations
+		newGeo = list()
+		for atom in updated_locations:
+			newGeo.append(atom)
+		newVel = list()
+		for vel in updated_velocities:
+			newVel.append(vel)
+	return newGeo, newVel
+	# 	# for each atom, find the updated coordinate and velocity in each axis
+	# 	mass = MASS_DICT[geometry[atom][0]]
+	# 	z_coord, z_vel = update_RK4(geometry, mass, atom, 0, velocities)
+	# 	y_coord, y_vel = update_RK4(geometry, mass, atom, 1, velocities)
+	# 	x_coord, x_vel = update_RK4(geometry, mass, atom, 2, velocities)
+	# 	# append the new geometry of the atom
+	# 	updated_locations.append((geometry[atom][0], 
+	# 		                      (z_coord, y_coord, x_coord)))
+	# 	updated_velocities.append(z_vel)
+	# 	updated_velocities.append(y_vel)
+	# 	updated_velocities.append(x_vel)
+	# if(hamil):
+	# 	ground_state_energy, hamiltonian = getGroundState(geometry)
+	# 	write_hamiltonians_to_file(hamiltonian)
+	# return updated_locations, updated_velocities
 
 
 def euler_cromer(geometry, velocities, hamil=False):
@@ -645,7 +675,7 @@ def evolve():
 	velocities = INITIAL_VELOCITIES
 
 	# write the current locations of each atom to the data file
-	write_data(geometry)
+	# write_data(geometry)
 
 	for x in range(0,ITERATIONS):
 		# use the Euler-Cromer evolution method to approximate the next location
@@ -659,11 +689,11 @@ def evolve():
 		# 	geometry, velocities = runge_kutta_4(geometry, velocities, hamil=True)
 		# else:
 		# 	geometry, velocities = runge_kutta_4(geometry, velocities)
-		start = timeit.timeit()
-		# geometry, velocities = runge_kutta_4(geometry, velocities)
-		print(timeit.timeit()-start)
+		# start = timeit.timeit()
+		geometry, velocities = runge_kutta_4(geometry, velocities)
+		# print(timeit.timeit()-start)
 		# write the current locations of each atom to the data file
-		write_data(geometry)
+		# write_data(geometry)
 
 
 if __name__ == '__main__':
