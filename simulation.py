@@ -23,12 +23,12 @@ python simulation.py example.txt 1 0 H 0 0 0 0 0 0 H 0 0 0.7414 0 0 0
 velocity for either atom in any axis
 
 TODO:
-	print hamil for RK4
 	change RK4 to calculate all accelerations at the same time
 	change Initial velocities and geometries from global variables to local
 	change velocity data structure to resemble geometry
 	make it easier to edit the geometry
-	can we make anything multithreaded? - hard with psi4 calculations
+	can we make anything multithreaded/muliprocessing? 
+	    - hard with psi4 calculations/won't work on the cluster
 
 Biggest Time Concern:
 	calling get_ground_state() is by far the bottle-neck of this program
