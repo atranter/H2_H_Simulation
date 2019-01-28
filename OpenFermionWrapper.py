@@ -1,5 +1,6 @@
 from openfermion import *
 from openfermionpsi4 import run_psi4
+import GroveWrapper as grove
 import os
 import sys
 
@@ -260,6 +261,27 @@ class OpenFermionWrapper():
 
         sparse_matrix = get_sparse_operator(self.fermion_hamiltonian)
         self.ground_state_energy = get_ground_state(sparse_matrix)[0]
+
+    def estimate_ground_state_energy(self):
+        '''
+        ARGS:
+            None
+        RETURNS:
+            None
+        
+        This function uses the external quantum-grove package to estimate the
+        ground state energy of the molecule. The quantum-grove package utilizes
+        the Rigetti Forest platform, hence, pyquil and the openfermion-forest
+        plugin, forestopenfermion, are required. 
+        The energy is stored as a floating point number in the 
+        ground_state_energy variable of this class. 
+        If the fermion hamiltonian is not generated, this function will call
+        the create_hamiltonians method prior to calculating the energy.
+        '''
+        if(not self.fermion_hamiltonian):
+            self.create_hamiltonians()
+
+        self.ground_state_energy = grove.ground_state_energy("hello")
 
     def perform_transform(self, mapping):
         ''' 

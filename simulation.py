@@ -129,7 +129,7 @@ def parse_inputs(input):
 	DATAFILE = input[1]
 	MULTIPLICITY = int(input[2])
 	CHARGE = int(input[3])
-	N = ((len(input)-4)/7)
+	N = int((len(input)-4)/7)
 
 	for i in range(N):
 		# index of the current atom in the command line arguements
@@ -217,7 +217,7 @@ def getGroundState(geometry):
     molecule.load_molecule(geometry=geometry,         basis=BASIS, 
     					   multiplicity=MULTIPLICITY, charge=CHARGE,
     					   forceCalculation=True)
-    molecule.set_ground_state_energy()
+    molecule.estimate_ground_state_energy()
     molecule.perform_transform("BK")
     # Convert from Hartree to eV
     # return 27.2114*molecule.molecule.hf_energy
