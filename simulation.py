@@ -217,7 +217,7 @@ def getGroundState(geometry):
     molecule.load_molecule(geometry=geometry,         basis=BASIS, 
     					   multiplicity=MULTIPLICITY, charge=CHARGE,
     					   forceCalculation=True)
-    molecule.estimate_ground_state_energy()
+    molecule.estimate_ground_state_energy("BK")
     molecule.perform_transform("BK")
     # Convert from Hartree to eV
     # return 27.2114*molecule.molecule.hf_energy

@@ -1,6 +1,6 @@
 from openfermion import *
 from openfermionpsi4 import run_psi4
-import GroveWrapper as grove
+#import GroveWrapper as grove
 import os
 import sys
 
@@ -262,7 +262,7 @@ class OpenFermionWrapper():
         sparse_matrix = get_sparse_operator(self.fermion_hamiltonian)
         self.ground_state_energy = get_ground_state(sparse_matrix)[0]
 
-    def estimate_ground_state_energy(self):
+    def estimate_ground_state_energy(self, mapping):
         '''
         ARGS:
             None
@@ -278,10 +278,22 @@ class OpenFermionWrapper():
         If the fermion hamiltonian is not generated, this function will call
         the create_hamiltonians method prior to calculating the energy.
         '''
-        if(not self.fermion_hamiltonian):
-            self.create_hamiltonians()
-
-        self.ground_state_energy = grove.ground_state_energy("hello")
+        qubit_hamil = None
+        if(mapping == "BK"):
+            if(not self.qubit_hamiltonian_bk):
+                self.perform_transform("BK")
+            qubit_hamil = self.qubit_hamiltonian_bk
+        elif(mapping == "JW"):
+            if(not self.qubit_hamiltonian_jw):
+                self.perform_transform("JW")
+            qubit_hamil = self.qubit_hamiltonian_jw
+        else:
+            self.mapping_error(mapping)
+        #self.ground_state_energy = grove.ground_state_energy(qubit_hamil)
+        #print(self.ground_state_energy)
+        self.set_ground_state_energy()
+        print(self.ground_state_energy)
+        sys.exit()
 
     def perform_transform(self, mapping):
         ''' 
