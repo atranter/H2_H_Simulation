@@ -10,10 +10,19 @@ from scipy.optimize import minimize
 import numpy as np
 
 import sys
+import math
 
 from pyquil.paulis import sZ, exponentiate
 
 from OpenFermionWrapper import OpenFermionWrapper
+
+def custom_circuit(angles):
+	num_qubits = len(angles)
+	p = Program()
+	for qubit in range(num_qubits):
+		p += RZ(angles[qubit], qubit)
+	return p
+
 
 def get_H2_hamil(bondlength):
 	bondlength = bondlength[0]
@@ -34,6 +43,9 @@ def get_circuit(qubit_hamil):
 	
 	# exponentiate each term in the hamiltonian and append to circuit
 	for term in pyquil_generator.terms:
+		print(term)
+		print(term.coefficient.real)
+		# print(exponentiate(term))
 		pyquil_program += exponentiate(term)
 
 	return pyquil_program, pyquil_generator
@@ -45,15 +57,38 @@ def callable(bondlength):
 	return circuit
 
 
+def small_ansatz(params):
+    return Program(RX(params[0], 0))
+
+
 def find_best():
 	qvm = api.QVMConnection()
 
 	vqe = VQE(minimizer=minimize, minimizer_kwargs={'method': 'nelder-mead'})
-	initial = [float(2)]
-	hamil = get_H2_hamil([0.7414])
-	circuit, hamil = get_circuit(hamil)
 
-	print(vqe.vqe_run(callable, hamil, initial, samples=5, qvm=qvm))
+	hamiltonian = get_H2_hamil([float(1)])
+	circuit, hamiltonian = get_circuit(hamiltonian)
+
+	initial = [float(math.pi/2),float(math.pi),float(math.pi/2),float(math.pi)]
+	result = vqe.vqe_run(custom_circuit, hamiltonian, initial, 1000, qvm=qvm, samples=1000)
+	print(result)
+
+
+	# bond_range = np.linspace(0.0, 2, 20)
+	# data = [vqe.expectation(callable([bond]), hamiltonian, None, qvm)
+	#         for bond in bond_range]
+
+	# import matplotlib.pyplot as plt
+	# plt.xlabel('Bond Length [angstrom]')
+	# plt.ylabel('Expectation value')
+	# plt.plot(bond_range, data)
+	# plt.show()
+
+	# initial = [float(2)]
+	# hamil = get_H2_hamil([0.7414])
+	# circuit, hamil = get_circuit(hamil)
+
+	# print(vqe.vqe_run(callable, hamil, initial, samples=5, qvm=qvm))
 
 
 def ground_state_energy(qubit_hamil):
@@ -105,6 +140,6 @@ def execute():
 	print(result[7])
 	print(result[8])
 
-# find_best()
+find_best()
 # expectation()
-execute()
+# execute()
